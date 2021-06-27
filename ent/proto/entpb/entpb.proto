@@ -21,6 +21,16 @@ message CreateUserRequest {
 
 message GetUserRequest {
   int32 id = 1;
+
+  View view = 2;
+
+  enum View {
+    VIEW_UNSPECIFIED = 0;
+
+    BASIC = 1;
+
+    WITH_EDGE_IDS = 2;
+  }
 }
 
 message UpdateUserRequest {

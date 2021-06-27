@@ -20,6 +20,7 @@ type UserQuery struct {
 	config
 	limit      *int
 	offset     *int
+	unique     *bool
 	order      []OrderFunc
 	fields     []string
 	predicates []predicate.User
@@ -43,6 +44,13 @@ func (uq *UserQuery) Limit(limit int) *UserQuery {
 // Offset adds an offset step to the query.
 func (uq *UserQuery) Offset(offset int) *UserQuery {
 	uq.offset = &offset
+	return uq
+}
+
+// Unique configures the query builder to filter duplicate records on query.
+// By default, unique is set to true, and can be disabled using this method.
+func (uq *UserQuery) Unique(unique bool) *UserQuery {
+	uq.unique = &unique
 	return uq
 }
 
@@ -352,6 +360,9 @@ func (uq *UserQuery) querySpec() *sqlgraph.QuerySpec {
 		From:   uq.sql,
 		Unique: true,
 	}
+	if unique := uq.unique; unique != nil {
+		_spec.Unique = *unique
+	}
 	if fields := uq.fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
 		_spec.Node.Columns = append(_spec.Node.Columns, user.FieldID)
@@ -377,7 +388,7 @@ func (uq *UserQuery) querySpec() *sqlgraph.QuerySpec {
 	if ps := uq.order; len(ps) > 0 {
 		_spec.Order = func(selector *sql.Selector) {
 			for i := range ps {
-				ps[i](selector, user.ValidColumn)
+				ps[i](selector)
 			}
 		}
 	}
@@ -387,16 +398,20 @@ func (uq *UserQuery) querySpec() *sqlgraph.QuerySpec {
 func (uq *UserQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	builder := sql.Dialect(uq.driver.Dialect())
 	t1 := builder.Table(user.Table)
-	selector := builder.Select(t1.Columns(user.Columns...)...).From(t1)
+	columns := uq.fields
+	if len(columns) == 0 {
+		columns = user.Columns
+	}
+	selector := builder.Select(t1.Columns(columns...)...).From(t1)
 	if uq.sql != nil {
 		selector = uq.sql
-		selector.Select(selector.Columns(user.Columns...)...)
+		selector.Select(selector.Columns(columns...)...)
 	}
 	for _, p := range uq.predicates {
 		p(selector)
 	}
 	for _, p := range uq.order {
-		p(selector, user.ValidColumn)
+		p(selector)
 	}
 	if offset := uq.offset; offset != nil {
 		// limit is mandatory for offset clause. We start
@@ -658,13 +673,24 @@ func (ugb *UserGroupBy) sqlScan(ctx context.Context, v interface{}) error {
 }
 
 func (ugb *UserGroupBy) sqlQuery() *sql.Selector {
-	selector := ugb.sql
-	columns := make([]string, 0, len(ugb.fields)+len(ugb.fns))
-	columns = append(columns, ugb.fields...)
+	selector := ugb.sql.Select()
+	aggregation := make([]string, 0, len(ugb.fns))
 	for _, fn := range ugb.fns {
-		columns = append(columns, fn(selector, user.ValidColumn))
+		aggregation = append(aggregation, fn(selector))
 	}
-	return selector.Select(columns...).GroupBy(ugb.fields...)
+	// If no columns were selected in a custom aggregation function, the default
+	// selection is the fields used for "group-by", and the aggregation functions.
+	if len(selector.SelectedColumns()) == 0 {
+		columns := make([]string, 0, len(ugb.fields)+len(ugb.fns))
+		for _, f := range ugb.fields {
+			columns = append(columns, selector.C(f))
+		}
+		for _, c := range aggregation {
+			columns = append(columns, c)
+		}
+		selector.Select(columns...)
+	}
+	return selector.GroupBy(selector.Columns(ugb.fields...)...)
 }
 
 // UserSelect is the builder for selecting fields of User entities.
@@ -880,16 +906,10 @@ func (us *UserSelect) BoolX(ctx context.Context) bool {
 
 func (us *UserSelect) sqlScan(ctx context.Context, v interface{}) error {
 	rows := &sql.Rows{}
-	query, args := us.sqlQuery().Query()
+	query, args := us.sql.Query()
 	if err := us.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}
 	defer rows.Close()
 	return sql.ScanSlice(rows, v)
-}
-
-func (us *UserSelect) sqlQuery() sql.Querier {
-	selector := us.sql
-	selector.Select(selector.Columns(us.fields...)...)
-	return selector
 }

@@ -8,7 +8,7 @@ import (
 
 func TestUserProto(t *testing.T) {
 	user := entpb.User{
-		Name:     "rotemtam",
+		Name:         "rotemtam",
 		EmailAddress: "rotemtam@example.com",
 	}
 	if user.GetName() != "rotemtam" {

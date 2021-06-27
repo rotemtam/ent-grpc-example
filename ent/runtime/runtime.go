@@ -5,6 +5,6 @@ package runtime
 // The schema-stitching logic is generated in github.com/rotemtam/ent-grpc-example/ent/runtime.go
 
 const (
-	Version = "v0.7.0"                                          // Version of ent codegen.
-	Sum     = "h1:E3EjO0cUL61DvUg5ZEZdxa4yTL+4SuZv0LqBExo8CQA=" // Sum of ent codegen.
+	Version = "v0.8.1-0.20210611070438-49d11cc774dc"            // Version of ent codegen.
+	Sum     = "h1:AOQG3xI0LZzafq8Q7cYWNh8U3kl7asZHnVdO0XF9Bvk=" // Sum of ent codegen.
 )

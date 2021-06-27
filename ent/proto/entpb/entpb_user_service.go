@@ -5,6 +5,7 @@ import (
 	context "context"
 	sqlgraph "entgo.io/ent/dialect/sql/sqlgraph"
 	ent "github.com/rotemtam/ent-grpc-example/ent"
+	user "github.com/rotemtam/ent-grpc-example/ent/user"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
@@ -23,22 +24,23 @@ func NewUserService(client *ent.Client) *UserService {
 	}
 }
 
-// toProtoUser transforms the ent type to the pb type (TODO: complete implementation)
+// toProtoUser transforms the ent type to the pb type
 func toProtoUser(e *ent.User) *User {
-	return &User{
-		EmailAddress: string(e.EmailAddress),
+	v := &User{
+		EmailAddress: e.EmailAddress,
 		Id:           int32(e.ID),
-		Name:         string(e.Name),
+		Name:         e.Name,
 	}
+	return v
 }
 
 // Create implements UserServiceServer.Create
 func (svc *UserService) Create(ctx context.Context, req *CreateUserRequest) (*User, error) {
 	user := req.GetUser()
-	res, err := svc.client.User.Create().
-		SetEmailAddress(string(user.GetEmailAddress())).
-		SetName(string(user.GetName())).
-		Save(ctx)
+	m := svc.client.User.Create()
+	m.SetEmailAddress(user.GetEmailAddress())
+	m.SetName(user.GetName())
+	res, err := m.Save(ctx)
 
 	switch {
 	case err == nil:
@@ -54,7 +56,20 @@ func (svc *UserService) Create(ctx context.Context, req *CreateUserRequest) (*Us
 
 // Get implements UserServiceServer.Get
 func (svc *UserService) Get(ctx context.Context, req *GetUserRequest) (*User, error) {
-	get, err := svc.client.User.Get(ctx, int(req.GetId()))
+	var (
+		err error
+		get *ent.User
+	)
+	switch req.GetView() {
+	case GetUserRequest_VIEW_UNSPECIFIED, GetUserRequest_BASIC:
+		get, err = svc.client.User.Get(ctx, int(req.GetId()))
+	case GetUserRequest_WITH_EDGE_IDS:
+		get, err = svc.client.User.Query().
+			Where(user.ID(int(req.GetId()))).
+			Only(ctx)
+	default:
+		return nil, status.Errorf(codes.InvalidArgument, "invalid argument: unknown view")
+	}
 	switch {
 	case err == nil:
 		return toProtoUser(get), nil
@@ -68,10 +83,10 @@ func (svc *UserService) Get(ctx context.Context, req *GetUserRequest) (*User, er
 // Update implements UserServiceServer.Update
 func (svc *UserService) Update(ctx context.Context, req *UpdateUserRequest) (*User, error) {
 	user := req.GetUser()
-	res, err := svc.client.User.UpdateOneID(int(user.GetId())).
-		SetEmailAddress(string(user.GetEmailAddress())).
-		SetName(string(user.GetName())).
-		Save(ctx)
+	m := svc.client.User.UpdateOneID(int(user.GetId()))
+	m.SetEmailAddress(user.GetEmailAddress())
+	m.SetName(user.GetName())
+	res, err := m.Save(ctx)
 
 	switch {
 	case err == nil:
