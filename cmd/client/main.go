@@ -10,6 +10,7 @@ import (
 	"github.com/rotemtam/ent-grpc-example/ent/proto/entpb"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/wrapperspb"
 )
 
 func main() {
@@ -52,5 +53,6 @@ func randomUser() *entpb.User {
 	return &entpb.User{
 		Name:         fmt.Sprintf("user_%d", rand.Int()),
 		EmailAddress: fmt.Sprintf("user_%d@example.com", rand.Int()),
+		Alias:        wrapperspb.String(fmt.Sprintf("John Doe")),
 	}
 }

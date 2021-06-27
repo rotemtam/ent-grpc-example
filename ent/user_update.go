@@ -38,6 +38,26 @@ func (uu *UserUpdate) SetEmailAddress(s string) *UserUpdate {
 	return uu
 }
 
+// SetAlias sets the "alias" field.
+func (uu *UserUpdate) SetAlias(s string) *UserUpdate {
+	uu.mutation.SetAlias(s)
+	return uu
+}
+
+// SetNillableAlias sets the "alias" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableAlias(s *string) *UserUpdate {
+	if s != nil {
+		uu.SetAlias(*s)
+	}
+	return uu
+}
+
+// ClearAlias clears the value of the "alias" field.
+func (uu *UserUpdate) ClearAlias() *UserUpdate {
+	uu.mutation.ClearAlias()
+	return uu
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (uu *UserUpdate) Mutation() *UserMutation {
 	return uu.mutation
@@ -126,6 +146,19 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: user.FieldEmailAddress,
 		})
 	}
+	if value, ok := uu.mutation.Alias(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: user.FieldAlias,
+		})
+	}
+	if uu.mutation.AliasCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: user.FieldAlias,
+		})
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, uu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{user.Label}
@@ -154,6 +187,26 @@ func (uuo *UserUpdateOne) SetName(s string) *UserUpdateOne {
 // SetEmailAddress sets the "email_address" field.
 func (uuo *UserUpdateOne) SetEmailAddress(s string) *UserUpdateOne {
 	uuo.mutation.SetEmailAddress(s)
+	return uuo
+}
+
+// SetAlias sets the "alias" field.
+func (uuo *UserUpdateOne) SetAlias(s string) *UserUpdateOne {
+	uuo.mutation.SetAlias(s)
+	return uuo
+}
+
+// SetNillableAlias sets the "alias" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableAlias(s *string) *UserUpdateOne {
+	if s != nil {
+		uuo.SetAlias(*s)
+	}
+	return uuo
+}
+
+// ClearAlias clears the value of the "alias" field.
+func (uuo *UserUpdateOne) ClearAlias() *UserUpdateOne {
+	uuo.mutation.ClearAlias()
 	return uuo
 }
 
@@ -267,6 +320,19 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 			Type:   field.TypeString,
 			Value:  value,
 			Column: user.FieldEmailAddress,
+		})
+	}
+	if value, ok := uuo.mutation.Alias(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: user.FieldAlias,
+		})
+	}
+	if uuo.mutation.AliasCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: user.FieldAlias,
 		})
 	}
 	_node = &User{config: uuo.config}

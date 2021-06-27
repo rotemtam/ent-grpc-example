@@ -9,6 +9,7 @@ import (
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
+	wrapperspb "google.golang.org/protobuf/types/known/wrapperspb"
 )
 
 // UserService implements UserServiceServer
@@ -27,6 +28,7 @@ func NewUserService(client *ent.Client) *UserService {
 // toProtoUser transforms the ent type to the pb type
 func toProtoUser(e *ent.User) *User {
 	v := &User{
+		Alias:        wrapperspb.String(e.Alias),
 		EmailAddress: e.EmailAddress,
 		Id:           int32(e.ID),
 		Name:         e.Name,
@@ -38,6 +40,9 @@ func toProtoUser(e *ent.User) *User {
 func (svc *UserService) Create(ctx context.Context, req *CreateUserRequest) (*User, error) {
 	user := req.GetUser()
 	m := svc.client.User.Create()
+	if user.GetAlias() != nil {
+		m.SetAlias(user.GetAlias().GetValue())
+	}
 	m.SetEmailAddress(user.GetEmailAddress())
 	m.SetName(user.GetName())
 	res, err := m.Save(ctx)
@@ -84,6 +89,9 @@ func (svc *UserService) Get(ctx context.Context, req *GetUserRequest) (*User, er
 func (svc *UserService) Update(ctx context.Context, req *UpdateUserRequest) (*User, error) {
 	user := req.GetUser()
 	m := svc.client.User.UpdateOneID(int(user.GetId()))
+	if user.GetAlias() != nil {
+		m.SetAlias(user.GetAlias().GetValue())
+	}
 	m.SetEmailAddress(user.GetEmailAddress())
 	m.SetName(user.GetName())
 	res, err := m.Save(ctx)

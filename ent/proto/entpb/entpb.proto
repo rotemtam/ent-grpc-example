@@ -5,6 +5,8 @@ package entpb;
 
 import "google/protobuf/empty.proto";
 
+import "google/protobuf/wrappers.proto";
+
 option go_package = "github.com/rotemtam/ent-grpc-example/ent/proto/entpb";
 
 message User {
@@ -13,6 +15,8 @@ message User {
   string name = 2;
 
   string email_address = 3;
+
+  google.protobuf.StringValue alias = 4;
 }
 
 message CreateUserRequest {

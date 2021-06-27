@@ -33,6 +33,7 @@ type UserMutation struct {
 	id            *int
 	name          *string
 	email_address *string
+	alias         *string
 	clearedFields map[string]struct{}
 	done          bool
 	oldValue      func(context.Context) (*User, error)
@@ -190,6 +191,55 @@ func (m *UserMutation) ResetEmailAddress() {
 	m.email_address = nil
 }
 
+// SetAlias sets the "alias" field.
+func (m *UserMutation) SetAlias(s string) {
+	m.alias = &s
+}
+
+// Alias returns the value of the "alias" field in the mutation.
+func (m *UserMutation) Alias() (r string, exists bool) {
+	v := m.alias
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAlias returns the old "alias" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldAlias(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldAlias is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldAlias requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAlias: %w", err)
+	}
+	return oldValue.Alias, nil
+}
+
+// ClearAlias clears the value of the "alias" field.
+func (m *UserMutation) ClearAlias() {
+	m.alias = nil
+	m.clearedFields[user.FieldAlias] = struct{}{}
+}
+
+// AliasCleared returns if the "alias" field was cleared in this mutation.
+func (m *UserMutation) AliasCleared() bool {
+	_, ok := m.clearedFields[user.FieldAlias]
+	return ok
+}
+
+// ResetAlias resets all changes to the "alias" field.
+func (m *UserMutation) ResetAlias() {
+	m.alias = nil
+	delete(m.clearedFields, user.FieldAlias)
+}
+
 // Op returns the operation name.
 func (m *UserMutation) Op() Op {
 	return m.op
@@ -204,12 +254,15 @@ func (m *UserMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserMutation) Fields() []string {
-	fields := make([]string, 0, 2)
+	fields := make([]string, 0, 3)
 	if m.name != nil {
 		fields = append(fields, user.FieldName)
 	}
 	if m.email_address != nil {
 		fields = append(fields, user.FieldEmailAddress)
+	}
+	if m.alias != nil {
+		fields = append(fields, user.FieldAlias)
 	}
 	return fields
 }
@@ -223,6 +276,8 @@ func (m *UserMutation) Field(name string) (ent.Value, bool) {
 		return m.Name()
 	case user.FieldEmailAddress:
 		return m.EmailAddress()
+	case user.FieldAlias:
+		return m.Alias()
 	}
 	return nil, false
 }
@@ -236,6 +291,8 @@ func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldName(ctx)
 	case user.FieldEmailAddress:
 		return m.OldEmailAddress(ctx)
+	case user.FieldAlias:
+		return m.OldAlias(ctx)
 	}
 	return nil, fmt.Errorf("unknown User field %s", name)
 }
@@ -258,6 +315,13 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetEmailAddress(v)
+		return nil
+	case user.FieldAlias:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAlias(v)
 		return nil
 	}
 	return fmt.Errorf("unknown User field %s", name)
@@ -288,7 +352,11 @@ func (m *UserMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *UserMutation) ClearedFields() []string {
-	return nil
+	var fields []string
+	if m.FieldCleared(user.FieldAlias) {
+		fields = append(fields, user.FieldAlias)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -301,6 +369,11 @@ func (m *UserMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *UserMutation) ClearField(name string) error {
+	switch name {
+	case user.FieldAlias:
+		m.ClearAlias()
+		return nil
+	}
 	return fmt.Errorf("unknown User nullable field %s", name)
 }
 
@@ -313,6 +386,9 @@ func (m *UserMutation) ResetField(name string) error {
 		return nil
 	case user.FieldEmailAddress:
 		m.ResetEmailAddress()
+		return nil
+	case user.FieldAlias:
+		m.ResetAlias()
 		return nil
 	}
 	return fmt.Errorf("unknown User field %s", name)

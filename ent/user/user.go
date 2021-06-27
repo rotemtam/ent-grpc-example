@@ -11,6 +11,8 @@ const (
 	FieldName = "name"
 	// FieldEmailAddress holds the string denoting the email_address field in the database.
 	FieldEmailAddress = "email_address"
+	// FieldAlias holds the string denoting the alias field in the database.
+	FieldAlias = "alias"
 	// Table holds the table name of the user in the database.
 	Table = "users"
 )
@@ -20,6 +22,7 @@ var Columns = []string{
 	FieldID,
 	FieldName,
 	FieldEmailAddress,
+	FieldAlias,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).

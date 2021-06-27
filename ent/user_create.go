@@ -31,6 +31,20 @@ func (uc *UserCreate) SetEmailAddress(s string) *UserCreate {
 	return uc
 }
 
+// SetAlias sets the "alias" field.
+func (uc *UserCreate) SetAlias(s string) *UserCreate {
+	uc.mutation.SetAlias(s)
+	return uc
+}
+
+// SetNillableAlias sets the "alias" field if the given value is not nil.
+func (uc *UserCreate) SetNillableAlias(s *string) *UserCreate {
+	if s != nil {
+		uc.SetAlias(*s)
+	}
+	return uc
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (uc *UserCreate) Mutation() *UserMutation {
 	return uc.mutation
@@ -133,6 +147,14 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Column: user.FieldEmailAddress,
 		})
 		_node.EmailAddress = value
+	}
+	if value, ok := uc.mutation.Alias(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: user.FieldAlias,
+		})
+		_node.Alias = value
 	}
 	return _node, _spec
 }

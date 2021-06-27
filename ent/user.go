@@ -19,6 +19,8 @@ type User struct {
 	Name string `json:"name,omitempty"`
 	// EmailAddress holds the value of the "email_address" field.
 	EmailAddress string `json:"email_address,omitempty"`
+	// Alias holds the value of the "alias" field.
+	Alias string `json:"alias,omitempty"`
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -28,7 +30,7 @@ func (*User) scanValues(columns []string) ([]interface{}, error) {
 		switch columns[i] {
 		case user.FieldID:
 			values[i] = new(sql.NullInt64)
-		case user.FieldName, user.FieldEmailAddress:
+		case user.FieldName, user.FieldEmailAddress, user.FieldAlias:
 			values[i] = new(sql.NullString)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type User", columns[i])
@@ -63,6 +65,12 @@ func (u *User) assignValues(columns []string, values []interface{}) error {
 			} else if value.Valid {
 				u.EmailAddress = value.String
 			}
+		case user.FieldAlias:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field alias", values[i])
+			} else if value.Valid {
+				u.Alias = value.String
+			}
 		}
 	}
 	return nil
@@ -95,6 +103,8 @@ func (u *User) String() string {
 	builder.WriteString(u.Name)
 	builder.WriteString(", email_address=")
 	builder.WriteString(u.EmailAddress)
+	builder.WriteString(", alias=")
+	builder.WriteString(u.Alias)
 	builder.WriteByte(')')
 	return builder.String()
 }

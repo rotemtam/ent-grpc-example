@@ -25,6 +25,9 @@ func (User) Fields() []ent.Field {
 			Annotations(
 				entproto.Field(3),
 			),
+		field.String("alias").
+			Optional().
+			Annotations(entproto.Field(4)),
 	}
 }
 
