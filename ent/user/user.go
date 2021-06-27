@@ -13,8 +13,17 @@ const (
 	FieldEmailAddress = "email_address"
 	// FieldAlias holds the string denoting the alias field in the database.
 	FieldAlias = "alias"
+	// EdgeAdministered holds the string denoting the administered edge name in mutations.
+	EdgeAdministered = "administered"
 	// Table holds the table name of the user in the database.
 	Table = "users"
+	// AdministeredTable is the table the holds the administered relation/edge.
+	AdministeredTable = "categories"
+	// AdministeredInverseTable is the table name for the Category entity.
+	// It exists in this package in order to avoid circular dependency with the "category" package.
+	AdministeredInverseTable = "categories"
+	// AdministeredColumn is the table column denoting the administered relation/edge.
+	AdministeredColumn = "category_admin"
 )
 
 // Columns holds all SQL columns for user fields.

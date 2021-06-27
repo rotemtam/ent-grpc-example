@@ -18,3 +18,4 @@ func TestUserProto(t *testing.T) {
 		t.Fatal("expected email address to be rotemtam@example.com")
 	}
 }
+

@@ -4,6 +4,7 @@ import (
 	"entgo.io/contrib/entproto"
 	"entgo.io/ent"
 	"entgo.io/ent/schema"
+	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 )
 
@@ -40,5 +41,9 @@ func (User) Annotations() []schema.Annotation {
 
 // Edges of the User.
 func (User) Edges() []ent.Edge {
-	return nil
+	return []ent.Edge{
+		edge.From("administered", Category.Type).
+			Ref("admin").
+			Annotations(entproto.Field(5)),
+	}
 }

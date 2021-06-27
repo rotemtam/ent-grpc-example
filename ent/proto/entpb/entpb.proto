@@ -9,6 +9,14 @@ import "google/protobuf/wrappers.proto";
 
 option go_package = "github.com/rotemtam/ent-grpc-example/ent/proto/entpb";
 
+message Category {
+  int32 id = 1;
+
+  string name = 2;
+
+  User admin = 3;
+}
+
 message User {
   int32 id = 1;
 
@@ -17,6 +25,8 @@ message User {
   string email_address = 3;
 
   google.protobuf.StringValue alias = 4;
+
+  repeated Category administered = 5;
 }
 
 message CreateUserRequest {

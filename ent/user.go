@@ -21,6 +21,27 @@ type User struct {
 	EmailAddress string `json:"email_address,omitempty"`
 	// Alias holds the value of the "alias" field.
 	Alias string `json:"alias,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the UserQuery when eager-loading is set.
+	Edges UserEdges `json:"edges"`
+}
+
+// UserEdges holds the relations/edges for other nodes in the graph.
+type UserEdges struct {
+	// Administered holds the value of the administered edge.
+	Administered []*Category `json:"administered,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [1]bool
+}
+
+// AdministeredOrErr returns the Administered value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) AdministeredOrErr() ([]*Category, error) {
+	if e.loadedTypes[0] {
+		return e.Administered, nil
+	}
+	return nil, &NotLoadedError{edge: "administered"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -74,6 +95,11 @@ func (u *User) assignValues(columns []string, values []interface{}) error {
 		}
 	}
 	return nil
+}
+
+// QueryAdministered queries the "administered" edge of the User entity.
+func (u *User) QueryAdministered() *CategoryQuery {
+	return (&UserClient{config: u.config}).QueryAdministered(u)
 }
 
 // Update returns a builder for updating this User.
