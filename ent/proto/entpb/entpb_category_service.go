@@ -13,48 +13,43 @@ import (
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
-	wrapperspb "google.golang.org/protobuf/types/known/wrapperspb"
 	strconv "strconv"
 )
 
-// UserService implements UserServiceServer
-type UserService struct {
+// CategoryService implements CategoryServiceServer
+type CategoryService struct {
 	client *ent.Client
-	UnimplementedUserServiceServer
+	UnimplementedCategoryServiceServer
 }
 
-// NewUserService returns a new UserService
-func NewUserService(client *ent.Client) *UserService {
-	return &UserService{
+// NewCategoryService returns a new CategoryService
+func NewCategoryService(client *ent.Client) *CategoryService {
+	return &CategoryService{
 		client: client,
 	}
 }
 
-// toProtoUser transforms the ent type to the pb type
-func toProtoUser(e *ent.User) (*User, error) {
-	v := &User{}
-	alias := wrapperspb.String(e.Alias)
-	v.Alias = alias
-	email_address := e.EmailAddress
-	v.EmailAddress = email_address
+// toProtoCategory transforms the ent type to the pb type
+func toProtoCategory(e *ent.Category) (*Category, error) {
+	v := &Category{}
 	id := int64(e.ID)
 	v.Id = id
 	name := e.Name
 	v.Name = name
-	for _, edg := range e.Edges.Administered {
+	if edg := e.Edges.Admin; edg != nil {
 		id := int64(edg.ID)
-		v.Administered = append(v.Administered, &Category{
+		v.Admin = &User{
 			Id: id,
-		})
+		}
 	}
 	return v, nil
 }
 
-// toProtoUserList transforms a list of ent type to a list of pb type
-func toProtoUserList(e []*ent.User) ([]*User, error) {
-	var pbList []*User
+// toProtoCategoryList transforms a list of ent type to a list of pb type
+func toProtoCategoryList(e []*ent.Category) ([]*Category, error) {
+	var pbList []*Category
 	for _, entEntity := range e {
-		pbEntity, err := toProtoUser(entEntity)
+		pbEntity, err := toProtoCategory(entEntity)
 		if err != nil {
 			return nil, status.Errorf(codes.Internal, "internal error: %s", err)
 		}
@@ -63,17 +58,17 @@ func toProtoUserList(e []*ent.User) ([]*User, error) {
 	return pbList, nil
 }
 
-// Create implements UserServiceServer.Create
-func (svc *UserService) Create(ctx context.Context, req *CreateUserRequest) (*User, error) {
-	user := req.GetUser()
-	m, err := svc.createBuilder(user)
+// Create implements CategoryServiceServer.Create
+func (svc *CategoryService) Create(ctx context.Context, req *CreateCategoryRequest) (*Category, error) {
+	category := req.GetCategory()
+	m, err := svc.createBuilder(category)
 	if err != nil {
 		return nil, err
 	}
 	res, err := m.Save(ctx)
 	switch {
 	case err == nil:
-		proto, err := toProtoUser(res)
+		proto, err := toProtoCategory(res)
 		if err != nil {
 			return nil, status.Errorf(codes.Internal, "internal error: %s", err)
 		}
@@ -88,21 +83,21 @@ func (svc *UserService) Create(ctx context.Context, req *CreateUserRequest) (*Us
 
 }
 
-// Get implements UserServiceServer.Get
-func (svc *UserService) Get(ctx context.Context, req *GetUserRequest) (*User, error) {
+// Get implements CategoryServiceServer.Get
+func (svc *CategoryService) Get(ctx context.Context, req *GetCategoryRequest) (*Category, error) {
 	var (
 		err error
-		get *ent.User
+		get *ent.Category
 	)
 	id := int(req.GetId())
 	switch req.GetView() {
-	case GetUserRequest_VIEW_UNSPECIFIED, GetUserRequest_BASIC:
-		get, err = svc.client.User.Get(ctx, id)
-	case GetUserRequest_WITH_EDGE_IDS:
-		get, err = svc.client.User.Query().
-			Where(user.ID(id)).
-			WithAdministered(func(query *ent.CategoryQuery) {
-				query.Select(category.FieldID)
+	case GetCategoryRequest_VIEW_UNSPECIFIED, GetCategoryRequest_BASIC:
+		get, err = svc.client.Category.Get(ctx, id)
+	case GetCategoryRequest_WITH_EDGE_IDS:
+		get, err = svc.client.Category.Query().
+			Where(category.ID(id)).
+			WithAdmin(func(query *ent.UserQuery) {
+				query.Select(user.FieldID)
 			}).
 			Only(ctx)
 	default:
@@ -110,7 +105,7 @@ func (svc *UserService) Get(ctx context.Context, req *GetUserRequest) (*User, er
 	}
 	switch {
 	case err == nil:
-		return toProtoUser(get)
+		return toProtoCategory(get)
 	case ent.IsNotFound(err):
 		return nil, status.Errorf(codes.NotFound, "not found: %s", err)
 	default:
@@ -119,28 +114,22 @@ func (svc *UserService) Get(ctx context.Context, req *GetUserRequest) (*User, er
 
 }
 
-// Update implements UserServiceServer.Update
-func (svc *UserService) Update(ctx context.Context, req *UpdateUserRequest) (*User, error) {
-	user := req.GetUser()
-	userID := int(user.GetId())
-	m := svc.client.User.UpdateOneID(userID)
-	if user.GetAlias() != nil {
-		userAlias := user.GetAlias().GetValue()
-		m.SetAlias(userAlias)
-	}
-	userEmailAddress := user.GetEmailAddress()
-	m.SetEmailAddress(userEmailAddress)
-	userName := user.GetName()
-	m.SetName(userName)
-	for _, item := range user.GetAdministered() {
-		administered := int(item.GetId())
-		m.AddAdministeredIDs(administered)
+// Update implements CategoryServiceServer.Update
+func (svc *CategoryService) Update(ctx context.Context, req *UpdateCategoryRequest) (*Category, error) {
+	category := req.GetCategory()
+	categoryID := int(category.GetId())
+	m := svc.client.Category.UpdateOneID(categoryID)
+	categoryName := category.GetName()
+	m.SetName(categoryName)
+	if category.GetAdmin() != nil {
+		categoryAdmin := int(category.GetAdmin().GetId())
+		m.SetAdminID(categoryAdmin)
 	}
 
 	res, err := m.Save(ctx)
 	switch {
 	case err == nil:
-		proto, err := toProtoUser(res)
+		proto, err := toProtoCategory(res)
 		if err != nil {
 			return nil, status.Errorf(codes.Internal, "internal error: %s", err)
 		}
@@ -155,11 +144,11 @@ func (svc *UserService) Update(ctx context.Context, req *UpdateUserRequest) (*Us
 
 }
 
-// Delete implements UserServiceServer.Delete
-func (svc *UserService) Delete(ctx context.Context, req *DeleteUserRequest) (*emptypb.Empty, error) {
+// Delete implements CategoryServiceServer.Delete
+func (svc *CategoryService) Delete(ctx context.Context, req *DeleteCategoryRequest) (*emptypb.Empty, error) {
 	var err error
 	id := int(req.GetId())
-	err = svc.client.User.DeleteOneID(id).Exec(ctx)
+	err = svc.client.Category.DeleteOneID(id).Exec(ctx)
 	switch {
 	case err == nil:
 		return &emptypb.Empty{}, nil
@@ -171,11 +160,11 @@ func (svc *UserService) Delete(ctx context.Context, req *DeleteUserRequest) (*em
 
 }
 
-// List implements UserServiceServer.List
-func (svc *UserService) List(ctx context.Context, req *ListUserRequest) (*ListUserResponse, error) {
+// List implements CategoryServiceServer.List
+func (svc *CategoryService) List(ctx context.Context, req *ListCategoryRequest) (*ListCategoryResponse, error) {
 	var (
 		err      error
-		entList  []*ent.User
+		entList  []*ent.Category
 		pageSize int
 	)
 	pageSize = int(req.GetPageSize())
@@ -185,8 +174,8 @@ func (svc *UserService) List(ctx context.Context, req *ListUserRequest) (*ListUs
 	case pageSize == 0 || pageSize > entproto.MaxPageSize:
 		pageSize = entproto.MaxPageSize
 	}
-	listQuery := svc.client.User.Query().
-		Order(ent.Desc(user.FieldID)).
+	listQuery := svc.client.Category.Query().
+		Order(ent.Desc(category.FieldID)).
 		Limit(pageSize + 1)
 	if req.GetPageToken() != "" {
 		bytes, err := base64.StdEncoding.DecodeString(req.PageToken)
@@ -199,15 +188,15 @@ func (svc *UserService) List(ctx context.Context, req *ListUserRequest) (*ListUs
 		}
 		pageToken := int(token)
 		listQuery = listQuery.
-			Where(user.IDLTE(pageToken))
+			Where(category.IDLTE(pageToken))
 	}
 	switch req.GetView() {
-	case ListUserRequest_VIEW_UNSPECIFIED, ListUserRequest_BASIC:
+	case ListCategoryRequest_VIEW_UNSPECIFIED, ListCategoryRequest_BASIC:
 		entList, err = listQuery.All(ctx)
-	case ListUserRequest_WITH_EDGE_IDS:
+	case ListCategoryRequest_WITH_EDGE_IDS:
 		entList, err = listQuery.
-			WithAdministered(func(query *ent.CategoryQuery) {
-				query.Select(category.FieldID)
+			WithAdmin(func(query *ent.UserQuery) {
+				query.Select(user.FieldID)
 			}).
 			All(ctx)
 	}
@@ -219,12 +208,12 @@ func (svc *UserService) List(ctx context.Context, req *ListUserRequest) (*ListUs
 				[]byte(fmt.Sprintf("%v", entList[len(entList)-1].ID)))
 			entList = entList[:len(entList)-1]
 		}
-		protoList, err := toProtoUserList(entList)
+		protoList, err := toProtoCategoryList(entList)
 		if err != nil {
 			return nil, status.Errorf(codes.Internal, "internal error: %s", err)
 		}
-		return &ListUserResponse{
-			UserList:      protoList,
+		return &ListCategoryResponse{
+			CategoryList:  protoList,
 			NextPageToken: nextPageToken,
 		}, nil
 	default:
@@ -233,30 +222,30 @@ func (svc *UserService) List(ctx context.Context, req *ListUserRequest) (*ListUs
 
 }
 
-// BatchCreate implements UserServiceServer.BatchCreate
-func (svc *UserService) BatchCreate(ctx context.Context, req *BatchCreateUsersRequest) (*BatchCreateUsersResponse, error) {
+// BatchCreate implements CategoryServiceServer.BatchCreate
+func (svc *CategoryService) BatchCreate(ctx context.Context, req *BatchCreateCategoriesRequest) (*BatchCreateCategoriesResponse, error) {
 	requests := req.GetRequests()
 	if len(requests) > entproto.MaxBatchCreateSize {
 		return nil, status.Errorf(codes.InvalidArgument, "batch size cannot be greater than %d", entproto.MaxBatchCreateSize)
 	}
-	bulk := make([]*ent.UserCreate, len(requests))
+	bulk := make([]*ent.CategoryCreate, len(requests))
 	for i, req := range requests {
-		user := req.GetUser()
+		category := req.GetCategory()
 		var err error
-		bulk[i], err = svc.createBuilder(user)
+		bulk[i], err = svc.createBuilder(category)
 		if err != nil {
 			return nil, err
 		}
 	}
-	res, err := svc.client.User.CreateBulk(bulk...).Save(ctx)
+	res, err := svc.client.Category.CreateBulk(bulk...).Save(ctx)
 	switch {
 	case err == nil:
-		protoList, err := toProtoUserList(res)
+		protoList, err := toProtoCategoryList(res)
 		if err != nil {
 			return nil, status.Errorf(codes.Internal, "internal error: %s", err)
 		}
-		return &BatchCreateUsersResponse{
-			Users: protoList,
+		return &BatchCreateCategoriesResponse{
+			Categories: protoList,
 		}, nil
 	case sqlgraph.IsUniqueConstraintError(err):
 		return nil, status.Errorf(codes.AlreadyExists, "already exists: %s", err)
@@ -268,19 +257,13 @@ func (svc *UserService) BatchCreate(ctx context.Context, req *BatchCreateUsersRe
 
 }
 
-func (svc *UserService) createBuilder(user *User) (*ent.UserCreate, error) {
-	m := svc.client.User.Create()
-	if user.GetAlias() != nil {
-		userAlias := user.GetAlias().GetValue()
-		m.SetAlias(userAlias)
-	}
-	userEmailAddress := user.GetEmailAddress()
-	m.SetEmailAddress(userEmailAddress)
-	userName := user.GetName()
-	m.SetName(userName)
-	for _, item := range user.GetAdministered() {
-		administered := int(item.GetId())
-		m.AddAdministeredIDs(administered)
+func (svc *CategoryService) createBuilder(category *Category) (*ent.CategoryCreate, error) {
+	m := svc.client.Category.Create()
+	categoryName := category.GetName()
+	m.SetName(categoryName)
+	if category.GetAdmin() != nil {
+		categoryAdmin := int(category.GetAdmin().GetId())
+		m.SetAdminID(categoryAdmin)
 	}
 	return m, nil
 }

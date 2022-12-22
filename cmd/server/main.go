@@ -26,12 +26,14 @@ func main() {
 
 	// Initialize the generated User service.
 	svc := entpb.NewUserService(client)
+	csvc := entpb.NewCategoryService(client)
 
 	// Create a new gRPC server (you can wire multiple services to a single server).
 	server := grpc.NewServer()
 
 	// Register the User service with the server.
 	entpb.RegisterUserServiceServer(server, svc)
+	entpb.RegisterCategoryServiceServer(server, csvc)
 
 	// Open port 5000 for listening to traffic.
 	lis, err := net.Listen("tcp", ":5000")
