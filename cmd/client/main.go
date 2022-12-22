@@ -9,6 +9,7 @@ import (
 
 	"github.com/rotemtam/ent-grpc-example/ent/proto/entpb"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/wrapperspb"
 )
@@ -17,7 +18,7 @@ func main() {
 	rand.Seed(time.Now().UnixNano())
 
 	// Open a connection to the server.
-	conn, err := grpc.Dial(":5000", grpc.WithInsecure())
+	conn, err := grpc.Dial(":5000", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Fatalf("failed connecting to server: %s", err)
 	}
