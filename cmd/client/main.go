@@ -48,6 +48,21 @@ func main() {
 		log.Fatalf("failed retrieving user: status=%s message=%s", se.Code(), se.Message())
 	}
 	log.Printf("retrieved user with id=%d: %v", get.Id, get)
+
+	catClient := entpb.NewCategoryServiceClient(conn)
+	cc, err := catClient.Create(ctx, &entpb.CreateCategoryRequest{
+		Category: &entpb.Category{
+			Name: "test",
+			Admin: &entpb.User{
+				Id: created.Id,
+			},
+		},
+	})
+	if err != nil {
+		se, _ := status.FromError(err)
+		log.Fatalf("failed creating category: status=%s message=%s", se.Code(), se.Message())
+	}
+	log.Printf("category created with id: %d", cc.Id)
 }
 
 func randomUser() *entpb.User {

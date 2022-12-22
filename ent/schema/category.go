@@ -22,6 +22,7 @@ func (Category) Fields() []ent.Field {
 func (Category) Annotations() []schema.Annotation {
 	return []schema.Annotation{
 		entproto.Message(),
+		entproto.Service(),
 	}
 }
 
