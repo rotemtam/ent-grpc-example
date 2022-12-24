@@ -11,7 +11,6 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/status"
-	"google.golang.org/protobuf/types/known/wrapperspb"
 )
 
 func main() {
@@ -49,9 +48,9 @@ func main() {
 	}
 	log.Printf("retrieved user with id=%d: %v", get.Id, get)
 
-	catClient := entpb.NewCategoryServiceClient(conn)
-	cc, err := catClient.Create(ctx, &entpb.CreateCategoryRequest{
-		Category: &entpb.Category{
+	grpClient := entpb.NewGroupServiceClient(conn)
+	g, err := grpClient.Create(ctx, &entpb.CreateGroupRequest{
+		Group: &entpb.Group{
 			Name: "test",
 			Admin: &entpb.User{
 				Id: created.Id,
@@ -60,15 +59,27 @@ func main() {
 	})
 	if err != nil {
 		se, _ := status.FromError(err)
-		log.Fatalf("failed creating category: status=%s message=%s", se.Code(), se.Message())
+		log.Fatalf("failed creating group: status=%s message=%s", se.Code(), se.Message())
 	}
-	log.Printf("category created with id: %d", cc.Id)
+	log.Printf("group created with id: %d", g.Id)
+	g, err = grpClient.Get(ctx, &entpb.GetGroupRequest{
+		Id:   g.Id,
+		View: entpb.GetGroupRequest_WITH_EDGE_IDS,
+	})
+	if err != nil {
+		se, _ := status.FromError(err)
+		log.Fatalf("failed creating group: status=%s message=%s", se.Code(), se.Message())
+	}
+	log.Printf("group retrieved with id: %d admin id: %d", g.Id, g.Admin.Id)
+
 }
 
 func randomUser() *entpb.User {
+	r := rand.Int()
 	return &entpb.User{
-		Name:         fmt.Sprintf("user_%d", rand.Int()),
-		EmailAddress: fmt.Sprintf("user_%d@example.com", rand.Int()),
-		Alias:        wrapperspb.String(fmt.Sprintf("John Doe")),
+		Username:  fmt.Sprintf("user_%d", r),
+		FirstName: fmt.Sprintf("first_%d", r),
+		LastName:  fmt.Sprintf("last_%d", r),
+		Email:     fmt.Sprintf("user_%d@example.com", r),
 	}
 }

@@ -11,7 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/rotemtam/ent-grpc-example/ent/category"
+	"github.com/rotemtam/ent-grpc-example/ent/group"
 	"github.com/rotemtam/ent-grpc-example/ent/predicate"
 	"github.com/rotemtam/ent-grpc-example/ent/user"
 )
@@ -19,13 +19,13 @@ import (
 // UserQuery is the builder for querying User entities.
 type UserQuery struct {
 	config
-	limit            *int
-	offset           *int
-	unique           *bool
-	order            []OrderFunc
-	fields           []string
-	predicates       []predicate.User
-	withAdministered *CategoryQuery
+	limit       *int
+	offset      *int
+	unique      *bool
+	order       []OrderFunc
+	fields      []string
+	predicates  []predicate.User
+	withAdminOf *GroupQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -62,9 +62,9 @@ func (uq *UserQuery) Order(o ...OrderFunc) *UserQuery {
 	return uq
 }
 
-// QueryAdministered chains the current query on the "administered" edge.
-func (uq *UserQuery) QueryAdministered() *CategoryQuery {
-	query := &CategoryQuery{config: uq.config}
+// QueryAdminOf chains the current query on the "admin_of" edge.
+func (uq *UserQuery) QueryAdminOf() *GroupQuery {
+	query := &GroupQuery{config: uq.config}
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := uq.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -75,8 +75,8 @@ func (uq *UserQuery) QueryAdministered() *CategoryQuery {
 		}
 		step := sqlgraph.NewStep(
 			sqlgraph.From(user.Table, user.FieldID, selector),
-			sqlgraph.To(category.Table, category.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, true, user.AdministeredTable, user.AdministeredColumn),
+			sqlgraph.To(group.Table, group.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.AdminOfTable, user.AdminOfColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
 		return fromU, nil
@@ -260,12 +260,12 @@ func (uq *UserQuery) Clone() *UserQuery {
 		return nil
 	}
 	return &UserQuery{
-		config:           uq.config,
-		limit:            uq.limit,
-		offset:           uq.offset,
-		order:            append([]OrderFunc{}, uq.order...),
-		predicates:       append([]predicate.User{}, uq.predicates...),
-		withAdministered: uq.withAdministered.Clone(),
+		config:      uq.config,
+		limit:       uq.limit,
+		offset:      uq.offset,
+		order:       append([]OrderFunc{}, uq.order...),
+		predicates:  append([]predicate.User{}, uq.predicates...),
+		withAdminOf: uq.withAdminOf.Clone(),
 		// clone intermediate query.
 		sql:    uq.sql.Clone(),
 		path:   uq.path,
@@ -273,14 +273,14 @@ func (uq *UserQuery) Clone() *UserQuery {
 	}
 }
 
-// WithAdministered tells the query-builder to eager-load the nodes that are connected to
-// the "administered" edge. The optional arguments are used to configure the query builder of the edge.
-func (uq *UserQuery) WithAdministered(opts ...func(*CategoryQuery)) *UserQuery {
-	query := &CategoryQuery{config: uq.config}
+// WithAdminOf tells the query-builder to eager-load the nodes that are connected to
+// the "admin_of" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithAdminOf(opts ...func(*GroupQuery)) *UserQuery {
+	query := &GroupQuery{config: uq.config}
 	for _, opt := range opts {
 		opt(query)
 	}
-	uq.withAdministered = query
+	uq.withAdminOf = query
 	return uq
 }
 
@@ -290,12 +290,12 @@ func (uq *UserQuery) WithAdministered(opts ...func(*CategoryQuery)) *UserQuery {
 // Example:
 //
 //	var v []struct {
-//		Name string `json:"name,omitempty"`
+//		Username string `json:"username,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.User.Query().
-//		GroupBy(user.FieldName).
+//		GroupBy(user.FieldUsername).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (uq *UserQuery) GroupBy(field string, fields ...string) *UserGroupBy {
@@ -318,11 +318,11 @@ func (uq *UserQuery) GroupBy(field string, fields ...string) *UserGroupBy {
 // Example:
 //
 //	var v []struct {
-//		Name string `json:"name,omitempty"`
+//		Username string `json:"username,omitempty"`
 //	}
 //
 //	client.User.Query().
-//		Select(user.FieldName).
+//		Select(user.FieldUsername).
 //		Scan(ctx, &v)
 func (uq *UserQuery) Select(fields ...string) *UserSelect {
 	uq.fields = append(uq.fields, fields...)
@@ -358,7 +358,7 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 		nodes       = []*User{}
 		_spec       = uq.querySpec()
 		loadedTypes = [1]bool{
-			uq.withAdministered != nil,
+			uq.withAdminOf != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -379,17 +379,17 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
-	if query := uq.withAdministered; query != nil {
-		if err := uq.loadAdministered(ctx, query, nodes,
-			func(n *User) { n.Edges.Administered = []*Category{} },
-			func(n *User, e *Category) { n.Edges.Administered = append(n.Edges.Administered, e) }); err != nil {
+	if query := uq.withAdminOf; query != nil {
+		if err := uq.loadAdminOf(ctx, query, nodes,
+			func(n *User) { n.Edges.AdminOf = []*Group{} },
+			func(n *User, e *Group) { n.Edges.AdminOf = append(n.Edges.AdminOf, e) }); err != nil {
 			return nil, err
 		}
 	}
 	return nodes, nil
 }
 
-func (uq *UserQuery) loadAdministered(ctx context.Context, query *CategoryQuery, nodes []*User, init func(*User), assign func(*User, *Category)) error {
+func (uq *UserQuery) loadAdminOf(ctx context.Context, query *GroupQuery, nodes []*User, init func(*User), assign func(*User, *Group)) error {
 	fks := make([]driver.Value, 0, len(nodes))
 	nodeids := make(map[int]*User)
 	for i := range nodes {
@@ -400,21 +400,21 @@ func (uq *UserQuery) loadAdministered(ctx context.Context, query *CategoryQuery,
 		}
 	}
 	query.withFKs = true
-	query.Where(predicate.Category(func(s *sql.Selector) {
-		s.Where(sql.InValues(user.AdministeredColumn, fks...))
+	query.Where(predicate.Group(func(s *sql.Selector) {
+		s.Where(sql.InValues(user.AdminOfColumn, fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
 		return err
 	}
 	for _, n := range neighbors {
-		fk := n.category_admin
+		fk := n.user_admin_of
 		if fk == nil {
-			return fmt.Errorf(`foreign-key "category_admin" is nil for node %v`, n.ID)
+			return fmt.Errorf(`foreign-key "user_admin_of" is nil for node %v`, n.ID)
 		}
 		node, ok := nodeids[*fk]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "category_admin" returned %v for node %v`, *fk, n.ID)
+			return fmt.Errorf(`unexpected foreign-key "user_admin_of" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}

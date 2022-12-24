@@ -16,19 +16,17 @@ type User struct {
 // Fields of the User.
 func (User) Fields() []ent.Field {
 	return []ent.Field{
-		field.String("name").
-			Unique().
-			Annotations(
-				entproto.Field(2),
-			),
-		field.String("email_address").
-			Unique().
-			Annotations(
-				entproto.Field(3),
-			),
-		field.String("alias").
-			Optional().
-			Annotations(entproto.Field(4)),
+		field.String("username").NotEmpty().Unique().Annotations(entproto.Field(2)),
+		field.Text("first_name").NotEmpty().Annotations(entproto.Field(3)),
+		field.Text("last_name").NotEmpty().Annotations(entproto.Field(4)),
+		field.String("email").NotEmpty().Unique().Annotations(entproto.Field(5)),
+	}
+}
+
+// Edges of the User.
+func (User) Edges() []ent.Edge {
+	return []ent.Edge{
+		edge.To("admin_of", Group.Type).Annotations(entproto.Field(6)),
 	}
 }
 
@@ -36,14 +34,5 @@ func (User) Annotations() []schema.Annotation {
 	return []schema.Annotation{
 		entproto.Message(),
 		entproto.Service(),
-	}
-}
-
-// Edges of the User.
-func (User) Edges() []ent.Edge {
-	return []ent.Edge{
-		edge.From("administered", Category.Type).
-			Ref("admin").
-			Annotations(entproto.Field(5)),
 	}
 }

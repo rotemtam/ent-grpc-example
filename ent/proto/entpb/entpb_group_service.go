@@ -8,7 +8,7 @@ import (
 	sqlgraph "entgo.io/ent/dialect/sql/sqlgraph"
 	fmt "fmt"
 	ent "github.com/rotemtam/ent-grpc-example/ent"
-	category "github.com/rotemtam/ent-grpc-example/ent/category"
+	group "github.com/rotemtam/ent-grpc-example/ent/group"
 	user "github.com/rotemtam/ent-grpc-example/ent/user"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -16,22 +16,22 @@ import (
 	strconv "strconv"
 )
 
-// CategoryService implements CategoryServiceServer
-type CategoryService struct {
+// GroupService implements GroupServiceServer
+type GroupService struct {
 	client *ent.Client
-	UnimplementedCategoryServiceServer
+	UnimplementedGroupServiceServer
 }
 
-// NewCategoryService returns a new CategoryService
-func NewCategoryService(client *ent.Client) *CategoryService {
-	return &CategoryService{
+// NewGroupService returns a new GroupService
+func NewGroupService(client *ent.Client) *GroupService {
+	return &GroupService{
 		client: client,
 	}
 }
 
-// toProtoCategory transforms the ent type to the pb type
-func toProtoCategory(e *ent.Category) (*Category, error) {
-	v := &Category{}
+// toProtoGroup transforms the ent type to the pb type
+func toProtoGroup(e *ent.Group) (*Group, error) {
+	v := &Group{}
 	id := int64(e.ID)
 	v.Id = id
 	name := e.Name
@@ -45,11 +45,11 @@ func toProtoCategory(e *ent.Category) (*Category, error) {
 	return v, nil
 }
 
-// toProtoCategoryList transforms a list of ent type to a list of pb type
-func toProtoCategoryList(e []*ent.Category) ([]*Category, error) {
-	var pbList []*Category
+// toProtoGroupList transforms a list of ent type to a list of pb type
+func toProtoGroupList(e []*ent.Group) ([]*Group, error) {
+	var pbList []*Group
 	for _, entEntity := range e {
-		pbEntity, err := toProtoCategory(entEntity)
+		pbEntity, err := toProtoGroup(entEntity)
 		if err != nil {
 			return nil, status.Errorf(codes.Internal, "internal error: %s", err)
 		}
@@ -58,17 +58,17 @@ func toProtoCategoryList(e []*ent.Category) ([]*Category, error) {
 	return pbList, nil
 }
 
-// Create implements CategoryServiceServer.Create
-func (svc *CategoryService) Create(ctx context.Context, req *CreateCategoryRequest) (*Category, error) {
-	category := req.GetCategory()
-	m, err := svc.createBuilder(category)
+// Create implements GroupServiceServer.Create
+func (svc *GroupService) Create(ctx context.Context, req *CreateGroupRequest) (*Group, error) {
+	group := req.GetGroup()
+	m, err := svc.createBuilder(group)
 	if err != nil {
 		return nil, err
 	}
 	res, err := m.Save(ctx)
 	switch {
 	case err == nil:
-		proto, err := toProtoCategory(res)
+		proto, err := toProtoGroup(res)
 		if err != nil {
 			return nil, status.Errorf(codes.Internal, "internal error: %s", err)
 		}
@@ -83,19 +83,19 @@ func (svc *CategoryService) Create(ctx context.Context, req *CreateCategoryReque
 
 }
 
-// Get implements CategoryServiceServer.Get
-func (svc *CategoryService) Get(ctx context.Context, req *GetCategoryRequest) (*Category, error) {
+// Get implements GroupServiceServer.Get
+func (svc *GroupService) Get(ctx context.Context, req *GetGroupRequest) (*Group, error) {
 	var (
 		err error
-		get *ent.Category
+		get *ent.Group
 	)
 	id := int(req.GetId())
 	switch req.GetView() {
-	case GetCategoryRequest_VIEW_UNSPECIFIED, GetCategoryRequest_BASIC:
-		get, err = svc.client.Category.Get(ctx, id)
-	case GetCategoryRequest_WITH_EDGE_IDS:
-		get, err = svc.client.Category.Query().
-			Where(category.ID(id)).
+	case GetGroupRequest_VIEW_UNSPECIFIED, GetGroupRequest_BASIC:
+		get, err = svc.client.Group.Get(ctx, id)
+	case GetGroupRequest_WITH_EDGE_IDS:
+		get, err = svc.client.Group.Query().
+			Where(group.ID(id)).
 			WithAdmin(func(query *ent.UserQuery) {
 				query.Select(user.FieldID)
 			}).
@@ -105,7 +105,7 @@ func (svc *CategoryService) Get(ctx context.Context, req *GetCategoryRequest) (*
 	}
 	switch {
 	case err == nil:
-		return toProtoCategory(get)
+		return toProtoGroup(get)
 	case ent.IsNotFound(err):
 		return nil, status.Errorf(codes.NotFound, "not found: %s", err)
 	default:
@@ -114,22 +114,22 @@ func (svc *CategoryService) Get(ctx context.Context, req *GetCategoryRequest) (*
 
 }
 
-// Update implements CategoryServiceServer.Update
-func (svc *CategoryService) Update(ctx context.Context, req *UpdateCategoryRequest) (*Category, error) {
-	category := req.GetCategory()
-	categoryID := int(category.GetId())
-	m := svc.client.Category.UpdateOneID(categoryID)
-	categoryName := category.GetName()
-	m.SetName(categoryName)
-	if category.GetAdmin() != nil {
-		categoryAdmin := int(category.GetAdmin().GetId())
-		m.SetAdminID(categoryAdmin)
+// Update implements GroupServiceServer.Update
+func (svc *GroupService) Update(ctx context.Context, req *UpdateGroupRequest) (*Group, error) {
+	group := req.GetGroup()
+	groupID := int(group.GetId())
+	m := svc.client.Group.UpdateOneID(groupID)
+	groupName := group.GetName()
+	m.SetName(groupName)
+	if group.GetAdmin() != nil {
+		groupAdmin := int(group.GetAdmin().GetId())
+		m.SetAdminID(groupAdmin)
 	}
 
 	res, err := m.Save(ctx)
 	switch {
 	case err == nil:
-		proto, err := toProtoCategory(res)
+		proto, err := toProtoGroup(res)
 		if err != nil {
 			return nil, status.Errorf(codes.Internal, "internal error: %s", err)
 		}
@@ -144,11 +144,11 @@ func (svc *CategoryService) Update(ctx context.Context, req *UpdateCategoryReque
 
 }
 
-// Delete implements CategoryServiceServer.Delete
-func (svc *CategoryService) Delete(ctx context.Context, req *DeleteCategoryRequest) (*emptypb.Empty, error) {
+// Delete implements GroupServiceServer.Delete
+func (svc *GroupService) Delete(ctx context.Context, req *DeleteGroupRequest) (*emptypb.Empty, error) {
 	var err error
 	id := int(req.GetId())
-	err = svc.client.Category.DeleteOneID(id).Exec(ctx)
+	err = svc.client.Group.DeleteOneID(id).Exec(ctx)
 	switch {
 	case err == nil:
 		return &emptypb.Empty{}, nil
@@ -160,11 +160,11 @@ func (svc *CategoryService) Delete(ctx context.Context, req *DeleteCategoryReque
 
 }
 
-// List implements CategoryServiceServer.List
-func (svc *CategoryService) List(ctx context.Context, req *ListCategoryRequest) (*ListCategoryResponse, error) {
+// List implements GroupServiceServer.List
+func (svc *GroupService) List(ctx context.Context, req *ListGroupRequest) (*ListGroupResponse, error) {
 	var (
 		err      error
-		entList  []*ent.Category
+		entList  []*ent.Group
 		pageSize int
 	)
 	pageSize = int(req.GetPageSize())
@@ -174,8 +174,8 @@ func (svc *CategoryService) List(ctx context.Context, req *ListCategoryRequest) 
 	case pageSize == 0 || pageSize > entproto.MaxPageSize:
 		pageSize = entproto.MaxPageSize
 	}
-	listQuery := svc.client.Category.Query().
-		Order(ent.Desc(category.FieldID)).
+	listQuery := svc.client.Group.Query().
+		Order(ent.Desc(group.FieldID)).
 		Limit(pageSize + 1)
 	if req.GetPageToken() != "" {
 		bytes, err := base64.StdEncoding.DecodeString(req.PageToken)
@@ -188,12 +188,12 @@ func (svc *CategoryService) List(ctx context.Context, req *ListCategoryRequest) 
 		}
 		pageToken := int(token)
 		listQuery = listQuery.
-			Where(category.IDLTE(pageToken))
+			Where(group.IDLTE(pageToken))
 	}
 	switch req.GetView() {
-	case ListCategoryRequest_VIEW_UNSPECIFIED, ListCategoryRequest_BASIC:
+	case ListGroupRequest_VIEW_UNSPECIFIED, ListGroupRequest_BASIC:
 		entList, err = listQuery.All(ctx)
-	case ListCategoryRequest_WITH_EDGE_IDS:
+	case ListGroupRequest_WITH_EDGE_IDS:
 		entList, err = listQuery.
 			WithAdmin(func(query *ent.UserQuery) {
 				query.Select(user.FieldID)
@@ -208,12 +208,12 @@ func (svc *CategoryService) List(ctx context.Context, req *ListCategoryRequest) 
 				[]byte(fmt.Sprintf("%v", entList[len(entList)-1].ID)))
 			entList = entList[:len(entList)-1]
 		}
-		protoList, err := toProtoCategoryList(entList)
+		protoList, err := toProtoGroupList(entList)
 		if err != nil {
 			return nil, status.Errorf(codes.Internal, "internal error: %s", err)
 		}
-		return &ListCategoryResponse{
-			CategoryList:  protoList,
+		return &ListGroupResponse{
+			GroupList:     protoList,
 			NextPageToken: nextPageToken,
 		}, nil
 	default:
@@ -222,30 +222,30 @@ func (svc *CategoryService) List(ctx context.Context, req *ListCategoryRequest) 
 
 }
 
-// BatchCreate implements CategoryServiceServer.BatchCreate
-func (svc *CategoryService) BatchCreate(ctx context.Context, req *BatchCreateCategoriesRequest) (*BatchCreateCategoriesResponse, error) {
+// BatchCreate implements GroupServiceServer.BatchCreate
+func (svc *GroupService) BatchCreate(ctx context.Context, req *BatchCreateGroupsRequest) (*BatchCreateGroupsResponse, error) {
 	requests := req.GetRequests()
 	if len(requests) > entproto.MaxBatchCreateSize {
 		return nil, status.Errorf(codes.InvalidArgument, "batch size cannot be greater than %d", entproto.MaxBatchCreateSize)
 	}
-	bulk := make([]*ent.CategoryCreate, len(requests))
+	bulk := make([]*ent.GroupCreate, len(requests))
 	for i, req := range requests {
-		category := req.GetCategory()
+		group := req.GetGroup()
 		var err error
-		bulk[i], err = svc.createBuilder(category)
+		bulk[i], err = svc.createBuilder(group)
 		if err != nil {
 			return nil, err
 		}
 	}
-	res, err := svc.client.Category.CreateBulk(bulk...).Save(ctx)
+	res, err := svc.client.Group.CreateBulk(bulk...).Save(ctx)
 	switch {
 	case err == nil:
-		protoList, err := toProtoCategoryList(res)
+		protoList, err := toProtoGroupList(res)
 		if err != nil {
 			return nil, status.Errorf(codes.Internal, "internal error: %s", err)
 		}
-		return &BatchCreateCategoriesResponse{
-			Categories: protoList,
+		return &BatchCreateGroupsResponse{
+			Groups: protoList,
 		}, nil
 	case sqlgraph.IsUniqueConstraintError(err):
 		return nil, status.Errorf(codes.AlreadyExists, "already exists: %s", err)
@@ -257,13 +257,13 @@ func (svc *CategoryService) BatchCreate(ctx context.Context, req *BatchCreateCat
 
 }
 
-func (svc *CategoryService) createBuilder(category *Category) (*ent.CategoryCreate, error) {
-	m := svc.client.Category.Create()
-	categoryName := category.GetName()
-	m.SetName(categoryName)
-	if category.GetAdmin() != nil {
-		categoryAdmin := int(category.GetAdmin().GetId())
-		m.SetAdminID(categoryAdmin)
+func (svc *GroupService) createBuilder(group *Group) (*ent.GroupCreate, error) {
+	m := svc.client.Group.Create()
+	groupName := group.GetName()
+	m.SetName(groupName)
+	if group.GetAdmin() != nil {
+		groupAdmin := int(group.GetAdmin().GetId())
+		m.SetAdminID(groupAdmin)
 	}
 	return m, nil
 }

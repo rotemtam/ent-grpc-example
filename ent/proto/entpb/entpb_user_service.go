@@ -8,12 +8,11 @@ import (
 	sqlgraph "entgo.io/ent/dialect/sql/sqlgraph"
 	fmt "fmt"
 	ent "github.com/rotemtam/ent-grpc-example/ent"
-	category "github.com/rotemtam/ent-grpc-example/ent/category"
+	group "github.com/rotemtam/ent-grpc-example/ent/group"
 	user "github.com/rotemtam/ent-grpc-example/ent/user"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
-	wrapperspb "google.golang.org/protobuf/types/known/wrapperspb"
 	strconv "strconv"
 )
 
@@ -33,17 +32,19 @@ func NewUserService(client *ent.Client) *UserService {
 // toProtoUser transforms the ent type to the pb type
 func toProtoUser(e *ent.User) (*User, error) {
 	v := &User{}
-	alias := wrapperspb.String(e.Alias)
-	v.Alias = alias
-	email_address := e.EmailAddress
-	v.EmailAddress = email_address
+	email := e.Email
+	v.Email = email
+	first_name := e.FirstName
+	v.FirstName = first_name
 	id := int64(e.ID)
 	v.Id = id
-	name := e.Name
-	v.Name = name
-	for _, edg := range e.Edges.Administered {
+	last_name := e.LastName
+	v.LastName = last_name
+	username := e.Username
+	v.Username = username
+	for _, edg := range e.Edges.AdminOf {
 		id := int64(edg.ID)
-		v.Administered = append(v.Administered, &Category{
+		v.AdminOf = append(v.AdminOf, &Group{
 			Id: id,
 		})
 	}
@@ -101,8 +102,8 @@ func (svc *UserService) Get(ctx context.Context, req *GetUserRequest) (*User, er
 	case GetUserRequest_WITH_EDGE_IDS:
 		get, err = svc.client.User.Query().
 			Where(user.ID(id)).
-			WithAdministered(func(query *ent.CategoryQuery) {
-				query.Select(category.FieldID)
+			WithAdminOf(func(query *ent.GroupQuery) {
+				query.Select(group.FieldID)
 			}).
 			Only(ctx)
 	default:
@@ -124,17 +125,17 @@ func (svc *UserService) Update(ctx context.Context, req *UpdateUserRequest) (*Us
 	user := req.GetUser()
 	userID := int(user.GetId())
 	m := svc.client.User.UpdateOneID(userID)
-	if user.GetAlias() != nil {
-		userAlias := user.GetAlias().GetValue()
-		m.SetAlias(userAlias)
-	}
-	userEmailAddress := user.GetEmailAddress()
-	m.SetEmailAddress(userEmailAddress)
-	userName := user.GetName()
-	m.SetName(userName)
-	for _, item := range user.GetAdministered() {
-		administered := int(item.GetId())
-		m.AddAdministeredIDs(administered)
+	userEmail := user.GetEmail()
+	m.SetEmail(userEmail)
+	userFirstName := user.GetFirstName()
+	m.SetFirstName(userFirstName)
+	userLastName := user.GetLastName()
+	m.SetLastName(userLastName)
+	userUsername := user.GetUsername()
+	m.SetUsername(userUsername)
+	for _, item := range user.GetAdminOf() {
+		adminof := int(item.GetId())
+		m.AddAdminOfIDs(adminof)
 	}
 
 	res, err := m.Save(ctx)
@@ -206,8 +207,8 @@ func (svc *UserService) List(ctx context.Context, req *ListUserRequest) (*ListUs
 		entList, err = listQuery.All(ctx)
 	case ListUserRequest_WITH_EDGE_IDS:
 		entList, err = listQuery.
-			WithAdministered(func(query *ent.CategoryQuery) {
-				query.Select(category.FieldID)
+			WithAdminOf(func(query *ent.GroupQuery) {
+				query.Select(group.FieldID)
 			}).
 			All(ctx)
 	}
@@ -270,17 +271,17 @@ func (svc *UserService) BatchCreate(ctx context.Context, req *BatchCreateUsersRe
 
 func (svc *UserService) createBuilder(user *User) (*ent.UserCreate, error) {
 	m := svc.client.User.Create()
-	if user.GetAlias() != nil {
-		userAlias := user.GetAlias().GetValue()
-		m.SetAlias(userAlias)
-	}
-	userEmailAddress := user.GetEmailAddress()
-	m.SetEmailAddress(userEmailAddress)
-	userName := user.GetName()
-	m.SetName(userName)
-	for _, item := range user.GetAdministered() {
-		administered := int(item.GetId())
-		m.AddAdministeredIDs(administered)
+	userEmail := user.GetEmail()
+	m.SetEmail(userEmail)
+	userFirstName := user.GetFirstName()
+	m.SetFirstName(userFirstName)
+	userLastName := user.GetLastName()
+	m.SetLastName(userLastName)
+	userUsername := user.GetUsername()
+	m.SetUsername(userUsername)
+	for _, item := range user.GetAdminOf() {
+		adminof := int(item.GetId())
+		m.AddAdminOfIDs(adminof)
 	}
 	return m, nil
 }

@@ -19,266 +19,266 @@ import (
 // Requires gRPC-Go v1.32.0 or later.
 const _ = grpc.SupportPackageIsVersion7
 
-// CategoryServiceClient is the client API for CategoryService service.
+// GroupServiceClient is the client API for GroupService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type CategoryServiceClient interface {
-	Create(ctx context.Context, in *CreateCategoryRequest, opts ...grpc.CallOption) (*Category, error)
-	Get(ctx context.Context, in *GetCategoryRequest, opts ...grpc.CallOption) (*Category, error)
-	Update(ctx context.Context, in *UpdateCategoryRequest, opts ...grpc.CallOption) (*Category, error)
-	Delete(ctx context.Context, in *DeleteCategoryRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	List(ctx context.Context, in *ListCategoryRequest, opts ...grpc.CallOption) (*ListCategoryResponse, error)
-	BatchCreate(ctx context.Context, in *BatchCreateCategoriesRequest, opts ...grpc.CallOption) (*BatchCreateCategoriesResponse, error)
+type GroupServiceClient interface {
+	Create(ctx context.Context, in *CreateGroupRequest, opts ...grpc.CallOption) (*Group, error)
+	Get(ctx context.Context, in *GetGroupRequest, opts ...grpc.CallOption) (*Group, error)
+	Update(ctx context.Context, in *UpdateGroupRequest, opts ...grpc.CallOption) (*Group, error)
+	Delete(ctx context.Context, in *DeleteGroupRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	List(ctx context.Context, in *ListGroupRequest, opts ...grpc.CallOption) (*ListGroupResponse, error)
+	BatchCreate(ctx context.Context, in *BatchCreateGroupsRequest, opts ...grpc.CallOption) (*BatchCreateGroupsResponse, error)
 }
 
-type categoryServiceClient struct {
+type groupServiceClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewCategoryServiceClient(cc grpc.ClientConnInterface) CategoryServiceClient {
-	return &categoryServiceClient{cc}
+func NewGroupServiceClient(cc grpc.ClientConnInterface) GroupServiceClient {
+	return &groupServiceClient{cc}
 }
 
-func (c *categoryServiceClient) Create(ctx context.Context, in *CreateCategoryRequest, opts ...grpc.CallOption) (*Category, error) {
-	out := new(Category)
-	err := c.cc.Invoke(ctx, "/entpb.CategoryService/Create", in, out, opts...)
+func (c *groupServiceClient) Create(ctx context.Context, in *CreateGroupRequest, opts ...grpc.CallOption) (*Group, error) {
+	out := new(Group)
+	err := c.cc.Invoke(ctx, "/entpb.GroupService/Create", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *categoryServiceClient) Get(ctx context.Context, in *GetCategoryRequest, opts ...grpc.CallOption) (*Category, error) {
-	out := new(Category)
-	err := c.cc.Invoke(ctx, "/entpb.CategoryService/Get", in, out, opts...)
+func (c *groupServiceClient) Get(ctx context.Context, in *GetGroupRequest, opts ...grpc.CallOption) (*Group, error) {
+	out := new(Group)
+	err := c.cc.Invoke(ctx, "/entpb.GroupService/Get", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *categoryServiceClient) Update(ctx context.Context, in *UpdateCategoryRequest, opts ...grpc.CallOption) (*Category, error) {
-	out := new(Category)
-	err := c.cc.Invoke(ctx, "/entpb.CategoryService/Update", in, out, opts...)
+func (c *groupServiceClient) Update(ctx context.Context, in *UpdateGroupRequest, opts ...grpc.CallOption) (*Group, error) {
+	out := new(Group)
+	err := c.cc.Invoke(ctx, "/entpb.GroupService/Update", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *categoryServiceClient) Delete(ctx context.Context, in *DeleteCategoryRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+func (c *groupServiceClient) Delete(ctx context.Context, in *DeleteGroupRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
 	out := new(emptypb.Empty)
-	err := c.cc.Invoke(ctx, "/entpb.CategoryService/Delete", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/entpb.GroupService/Delete", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *categoryServiceClient) List(ctx context.Context, in *ListCategoryRequest, opts ...grpc.CallOption) (*ListCategoryResponse, error) {
-	out := new(ListCategoryResponse)
-	err := c.cc.Invoke(ctx, "/entpb.CategoryService/List", in, out, opts...)
+func (c *groupServiceClient) List(ctx context.Context, in *ListGroupRequest, opts ...grpc.CallOption) (*ListGroupResponse, error) {
+	out := new(ListGroupResponse)
+	err := c.cc.Invoke(ctx, "/entpb.GroupService/List", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *categoryServiceClient) BatchCreate(ctx context.Context, in *BatchCreateCategoriesRequest, opts ...grpc.CallOption) (*BatchCreateCategoriesResponse, error) {
-	out := new(BatchCreateCategoriesResponse)
-	err := c.cc.Invoke(ctx, "/entpb.CategoryService/BatchCreate", in, out, opts...)
+func (c *groupServiceClient) BatchCreate(ctx context.Context, in *BatchCreateGroupsRequest, opts ...grpc.CallOption) (*BatchCreateGroupsResponse, error) {
+	out := new(BatchCreateGroupsResponse)
+	err := c.cc.Invoke(ctx, "/entpb.GroupService/BatchCreate", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// CategoryServiceServer is the server API for CategoryService service.
-// All implementations must embed UnimplementedCategoryServiceServer
+// GroupServiceServer is the server API for GroupService service.
+// All implementations must embed UnimplementedGroupServiceServer
 // for forward compatibility
-type CategoryServiceServer interface {
-	Create(context.Context, *CreateCategoryRequest) (*Category, error)
-	Get(context.Context, *GetCategoryRequest) (*Category, error)
-	Update(context.Context, *UpdateCategoryRequest) (*Category, error)
-	Delete(context.Context, *DeleteCategoryRequest) (*emptypb.Empty, error)
-	List(context.Context, *ListCategoryRequest) (*ListCategoryResponse, error)
-	BatchCreate(context.Context, *BatchCreateCategoriesRequest) (*BatchCreateCategoriesResponse, error)
-	mustEmbedUnimplementedCategoryServiceServer()
+type GroupServiceServer interface {
+	Create(context.Context, *CreateGroupRequest) (*Group, error)
+	Get(context.Context, *GetGroupRequest) (*Group, error)
+	Update(context.Context, *UpdateGroupRequest) (*Group, error)
+	Delete(context.Context, *DeleteGroupRequest) (*emptypb.Empty, error)
+	List(context.Context, *ListGroupRequest) (*ListGroupResponse, error)
+	BatchCreate(context.Context, *BatchCreateGroupsRequest) (*BatchCreateGroupsResponse, error)
+	mustEmbedUnimplementedGroupServiceServer()
 }
 
-// UnimplementedCategoryServiceServer must be embedded to have forward compatible implementations.
-type UnimplementedCategoryServiceServer struct {
+// UnimplementedGroupServiceServer must be embedded to have forward compatible implementations.
+type UnimplementedGroupServiceServer struct {
 }
 
-func (UnimplementedCategoryServiceServer) Create(context.Context, *CreateCategoryRequest) (*Category, error) {
+func (UnimplementedGroupServiceServer) Create(context.Context, *CreateGroupRequest) (*Group, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Create not implemented")
 }
-func (UnimplementedCategoryServiceServer) Get(context.Context, *GetCategoryRequest) (*Category, error) {
+func (UnimplementedGroupServiceServer) Get(context.Context, *GetGroupRequest) (*Group, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Get not implemented")
 }
-func (UnimplementedCategoryServiceServer) Update(context.Context, *UpdateCategoryRequest) (*Category, error) {
+func (UnimplementedGroupServiceServer) Update(context.Context, *UpdateGroupRequest) (*Group, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Update not implemented")
 }
-func (UnimplementedCategoryServiceServer) Delete(context.Context, *DeleteCategoryRequest) (*emptypb.Empty, error) {
+func (UnimplementedGroupServiceServer) Delete(context.Context, *DeleteGroupRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
 }
-func (UnimplementedCategoryServiceServer) List(context.Context, *ListCategoryRequest) (*ListCategoryResponse, error) {
+func (UnimplementedGroupServiceServer) List(context.Context, *ListGroupRequest) (*ListGroupResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method List not implemented")
 }
-func (UnimplementedCategoryServiceServer) BatchCreate(context.Context, *BatchCreateCategoriesRequest) (*BatchCreateCategoriesResponse, error) {
+func (UnimplementedGroupServiceServer) BatchCreate(context.Context, *BatchCreateGroupsRequest) (*BatchCreateGroupsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method BatchCreate not implemented")
 }
-func (UnimplementedCategoryServiceServer) mustEmbedUnimplementedCategoryServiceServer() {}
+func (UnimplementedGroupServiceServer) mustEmbedUnimplementedGroupServiceServer() {}
 
-// UnsafeCategoryServiceServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to CategoryServiceServer will
+// UnsafeGroupServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to GroupServiceServer will
 // result in compilation errors.
-type UnsafeCategoryServiceServer interface {
-	mustEmbedUnimplementedCategoryServiceServer()
+type UnsafeGroupServiceServer interface {
+	mustEmbedUnimplementedGroupServiceServer()
 }
 
-func RegisterCategoryServiceServer(s grpc.ServiceRegistrar, srv CategoryServiceServer) {
-	s.RegisterService(&CategoryService_ServiceDesc, srv)
+func RegisterGroupServiceServer(s grpc.ServiceRegistrar, srv GroupServiceServer) {
+	s.RegisterService(&GroupService_ServiceDesc, srv)
 }
 
-func _CategoryService_Create_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateCategoryRequest)
+func _GroupService_Create_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateGroupRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(CategoryServiceServer).Create(ctx, in)
+		return srv.(GroupServiceServer).Create(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/entpb.CategoryService/Create",
+		FullMethod: "/entpb.GroupService/Create",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CategoryServiceServer).Create(ctx, req.(*CreateCategoryRequest))
+		return srv.(GroupServiceServer).Create(ctx, req.(*CreateGroupRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _CategoryService_Get_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetCategoryRequest)
+func _GroupService_Get_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetGroupRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(CategoryServiceServer).Get(ctx, in)
+		return srv.(GroupServiceServer).Get(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/entpb.CategoryService/Get",
+		FullMethod: "/entpb.GroupService/Get",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CategoryServiceServer).Get(ctx, req.(*GetCategoryRequest))
+		return srv.(GroupServiceServer).Get(ctx, req.(*GetGroupRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _CategoryService_Update_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UpdateCategoryRequest)
+func _GroupService_Update_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateGroupRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(CategoryServiceServer).Update(ctx, in)
+		return srv.(GroupServiceServer).Update(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/entpb.CategoryService/Update",
+		FullMethod: "/entpb.GroupService/Update",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CategoryServiceServer).Update(ctx, req.(*UpdateCategoryRequest))
+		return srv.(GroupServiceServer).Update(ctx, req.(*UpdateGroupRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _CategoryService_Delete_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(DeleteCategoryRequest)
+func _GroupService_Delete_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteGroupRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(CategoryServiceServer).Delete(ctx, in)
+		return srv.(GroupServiceServer).Delete(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/entpb.CategoryService/Delete",
+		FullMethod: "/entpb.GroupService/Delete",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CategoryServiceServer).Delete(ctx, req.(*DeleteCategoryRequest))
+		return srv.(GroupServiceServer).Delete(ctx, req.(*DeleteGroupRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _CategoryService_List_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListCategoryRequest)
+func _GroupService_List_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListGroupRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(CategoryServiceServer).List(ctx, in)
+		return srv.(GroupServiceServer).List(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/entpb.CategoryService/List",
+		FullMethod: "/entpb.GroupService/List",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CategoryServiceServer).List(ctx, req.(*ListCategoryRequest))
+		return srv.(GroupServiceServer).List(ctx, req.(*ListGroupRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _CategoryService_BatchCreate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(BatchCreateCategoriesRequest)
+func _GroupService_BatchCreate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BatchCreateGroupsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(CategoryServiceServer).BatchCreate(ctx, in)
+		return srv.(GroupServiceServer).BatchCreate(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/entpb.CategoryService/BatchCreate",
+		FullMethod: "/entpb.GroupService/BatchCreate",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CategoryServiceServer).BatchCreate(ctx, req.(*BatchCreateCategoriesRequest))
+		return srv.(GroupServiceServer).BatchCreate(ctx, req.(*BatchCreateGroupsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-// CategoryService_ServiceDesc is the grpc.ServiceDesc for CategoryService service.
+// GroupService_ServiceDesc is the grpc.ServiceDesc for GroupService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var CategoryService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "entpb.CategoryService",
-	HandlerType: (*CategoryServiceServer)(nil),
+var GroupService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "entpb.GroupService",
+	HandlerType: (*GroupServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
 			MethodName: "Create",
-			Handler:    _CategoryService_Create_Handler,
+			Handler:    _GroupService_Create_Handler,
 		},
 		{
 			MethodName: "Get",
-			Handler:    _CategoryService_Get_Handler,
+			Handler:    _GroupService_Get_Handler,
 		},
 		{
 			MethodName: "Update",
-			Handler:    _CategoryService_Update_Handler,
+			Handler:    _GroupService_Update_Handler,
 		},
 		{
 			MethodName: "Delete",
-			Handler:    _CategoryService_Delete_Handler,
+			Handler:    _GroupService_Delete_Handler,
 		},
 		{
 			MethodName: "List",
-			Handler:    _CategoryService_List_Handler,
+			Handler:    _GroupService_List_Handler,
 		},
 		{
 			MethodName: "BatchCreate",
-			Handler:    _CategoryService_BatchCreate_Handler,
+			Handler:    _GroupService_BatchCreate_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -7,31 +7,34 @@ const (
 	Label = "user"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
-	// FieldName holds the string denoting the name field in the database.
-	FieldName = "name"
-	// FieldEmailAddress holds the string denoting the email_address field in the database.
-	FieldEmailAddress = "email_address"
-	// FieldAlias holds the string denoting the alias field in the database.
-	FieldAlias = "alias"
-	// EdgeAdministered holds the string denoting the administered edge name in mutations.
-	EdgeAdministered = "administered"
+	// FieldUsername holds the string denoting the username field in the database.
+	FieldUsername = "username"
+	// FieldFirstName holds the string denoting the first_name field in the database.
+	FieldFirstName = "first_name"
+	// FieldLastName holds the string denoting the last_name field in the database.
+	FieldLastName = "last_name"
+	// FieldEmail holds the string denoting the email field in the database.
+	FieldEmail = "email"
+	// EdgeAdminOf holds the string denoting the admin_of edge name in mutations.
+	EdgeAdminOf = "admin_of"
 	// Table holds the table name of the user in the database.
 	Table = "users"
-	// AdministeredTable is the table that holds the administered relation/edge.
-	AdministeredTable = "categories"
-	// AdministeredInverseTable is the table name for the Category entity.
-	// It exists in this package in order to avoid circular dependency with the "category" package.
-	AdministeredInverseTable = "categories"
-	// AdministeredColumn is the table column denoting the administered relation/edge.
-	AdministeredColumn = "category_admin"
+	// AdminOfTable is the table that holds the admin_of relation/edge.
+	AdminOfTable = "groups"
+	// AdminOfInverseTable is the table name for the Group entity.
+	// It exists in this package in order to avoid circular dependency with the "group" package.
+	AdminOfInverseTable = "groups"
+	// AdminOfColumn is the table column denoting the admin_of relation/edge.
+	AdminOfColumn = "user_admin_of"
 )
 
 // Columns holds all SQL columns for user fields.
 var Columns = []string{
 	FieldID,
-	FieldName,
-	FieldEmailAddress,
-	FieldAlias,
+	FieldUsername,
+	FieldFirstName,
+	FieldLastName,
+	FieldEmail,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -43,3 +46,14 @@ func ValidColumn(column string) bool {
 	}
 	return false
 }
+
+var (
+	// UsernameValidator is a validator for the "username" field. It is called by the builders before save.
+	UsernameValidator func(string) error
+	// FirstNameValidator is a validator for the "first_name" field. It is called by the builders before save.
+	FirstNameValidator func(string) error
+	// LastNameValidator is a validator for the "last_name" field. It is called by the builders before save.
+	LastNameValidator func(string) error
+	// EmailValidator is a validator for the "email" field. It is called by the builders before save.
+	EmailValidator func(string) error
+)

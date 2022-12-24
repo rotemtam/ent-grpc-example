@@ -15,12 +15,14 @@ type User struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
-	// Name holds the value of the "name" field.
-	Name string `json:"name,omitempty"`
-	// EmailAddress holds the value of the "email_address" field.
-	EmailAddress string `json:"email_address,omitempty"`
-	// Alias holds the value of the "alias" field.
-	Alias string `json:"alias,omitempty"`
+	// Username holds the value of the "username" field.
+	Username string `json:"username,omitempty"`
+	// FirstName holds the value of the "first_name" field.
+	FirstName string `json:"first_name,omitempty"`
+	// LastName holds the value of the "last_name" field.
+	LastName string `json:"last_name,omitempty"`
+	// Email holds the value of the "email" field.
+	Email string `json:"email,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the UserQuery when eager-loading is set.
 	Edges UserEdges `json:"edges"`
@@ -28,20 +30,20 @@ type User struct {
 
 // UserEdges holds the relations/edges for other nodes in the graph.
 type UserEdges struct {
-	// Administered holds the value of the administered edge.
-	Administered []*Category `json:"administered,omitempty"`
+	// AdminOf holds the value of the admin_of edge.
+	AdminOf []*Group `json:"admin_of,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
 	loadedTypes [1]bool
 }
 
-// AdministeredOrErr returns the Administered value or an error if the edge
+// AdminOfOrErr returns the AdminOf value or an error if the edge
 // was not loaded in eager-loading.
-func (e UserEdges) AdministeredOrErr() ([]*Category, error) {
+func (e UserEdges) AdminOfOrErr() ([]*Group, error) {
 	if e.loadedTypes[0] {
-		return e.Administered, nil
+		return e.AdminOf, nil
 	}
-	return nil, &NotLoadedError{edge: "administered"}
+	return nil, &NotLoadedError{edge: "admin_of"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -51,7 +53,7 @@ func (*User) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case user.FieldID:
 			values[i] = new(sql.NullInt64)
-		case user.FieldName, user.FieldEmailAddress, user.FieldAlias:
+		case user.FieldUsername, user.FieldFirstName, user.FieldLastName, user.FieldEmail:
 			values[i] = new(sql.NullString)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type User", columns[i])
@@ -74,32 +76,38 @@ func (u *User) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
 			u.ID = int(value.Int64)
-		case user.FieldName:
+		case user.FieldUsername:
 			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field name", values[i])
+				return fmt.Errorf("unexpected type %T for field username", values[i])
 			} else if value.Valid {
-				u.Name = value.String
+				u.Username = value.String
 			}
-		case user.FieldEmailAddress:
+		case user.FieldFirstName:
 			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field email_address", values[i])
+				return fmt.Errorf("unexpected type %T for field first_name", values[i])
 			} else if value.Valid {
-				u.EmailAddress = value.String
+				u.FirstName = value.String
 			}
-		case user.FieldAlias:
+		case user.FieldLastName:
 			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field alias", values[i])
+				return fmt.Errorf("unexpected type %T for field last_name", values[i])
 			} else if value.Valid {
-				u.Alias = value.String
+				u.LastName = value.String
+			}
+		case user.FieldEmail:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field email", values[i])
+			} else if value.Valid {
+				u.Email = value.String
 			}
 		}
 	}
 	return nil
 }
 
-// QueryAdministered queries the "administered" edge of the User entity.
-func (u *User) QueryAdministered() *CategoryQuery {
-	return (&UserClient{config: u.config}).QueryAdministered(u)
+// QueryAdminOf queries the "admin_of" edge of the User entity.
+func (u *User) QueryAdminOf() *GroupQuery {
+	return (&UserClient{config: u.config}).QueryAdminOf(u)
 }
 
 // Update returns a builder for updating this User.
@@ -125,14 +133,17 @@ func (u *User) String() string {
 	var builder strings.Builder
 	builder.WriteString("User(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", u.ID))
-	builder.WriteString("name=")
-	builder.WriteString(u.Name)
+	builder.WriteString("username=")
+	builder.WriteString(u.Username)
 	builder.WriteString(", ")
-	builder.WriteString("email_address=")
-	builder.WriteString(u.EmailAddress)
+	builder.WriteString("first_name=")
+	builder.WriteString(u.FirstName)
 	builder.WriteString(", ")
-	builder.WriteString("alias=")
-	builder.WriteString(u.Alias)
+	builder.WriteString("last_name=")
+	builder.WriteString(u.LastName)
+	builder.WriteString(", ")
+	builder.WriteString("email=")
+	builder.WriteString(u.Email)
 	builder.WriteByte(')')
 	return builder.String()
 }

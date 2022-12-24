@@ -10,7 +10,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/rotemtam/ent-grpc-example/ent/category"
+	"github.com/rotemtam/ent-grpc-example/ent/group"
 	"github.com/rotemtam/ent-grpc-example/ent/predicate"
 	"github.com/rotemtam/ent-grpc-example/ent/user"
 )
@@ -28,51 +28,43 @@ func (uu *UserUpdate) Where(ps ...predicate.User) *UserUpdate {
 	return uu
 }
 
-// SetName sets the "name" field.
-func (uu *UserUpdate) SetName(s string) *UserUpdate {
-	uu.mutation.SetName(s)
+// SetUsername sets the "username" field.
+func (uu *UserUpdate) SetUsername(s string) *UserUpdate {
+	uu.mutation.SetUsername(s)
 	return uu
 }
 
-// SetEmailAddress sets the "email_address" field.
-func (uu *UserUpdate) SetEmailAddress(s string) *UserUpdate {
-	uu.mutation.SetEmailAddress(s)
+// SetFirstName sets the "first_name" field.
+func (uu *UserUpdate) SetFirstName(s string) *UserUpdate {
+	uu.mutation.SetFirstName(s)
 	return uu
 }
 
-// SetAlias sets the "alias" field.
-func (uu *UserUpdate) SetAlias(s string) *UserUpdate {
-	uu.mutation.SetAlias(s)
+// SetLastName sets the "last_name" field.
+func (uu *UserUpdate) SetLastName(s string) *UserUpdate {
+	uu.mutation.SetLastName(s)
 	return uu
 }
 
-// SetNillableAlias sets the "alias" field if the given value is not nil.
-func (uu *UserUpdate) SetNillableAlias(s *string) *UserUpdate {
-	if s != nil {
-		uu.SetAlias(*s)
+// SetEmail sets the "email" field.
+func (uu *UserUpdate) SetEmail(s string) *UserUpdate {
+	uu.mutation.SetEmail(s)
+	return uu
+}
+
+// AddAdminOfIDs adds the "admin_of" edge to the Group entity by IDs.
+func (uu *UserUpdate) AddAdminOfIDs(ids ...int) *UserUpdate {
+	uu.mutation.AddAdminOfIDs(ids...)
+	return uu
+}
+
+// AddAdminOf adds the "admin_of" edges to the Group entity.
+func (uu *UserUpdate) AddAdminOf(g ...*Group) *UserUpdate {
+	ids := make([]int, len(g))
+	for i := range g {
+		ids[i] = g[i].ID
 	}
-	return uu
-}
-
-// ClearAlias clears the value of the "alias" field.
-func (uu *UserUpdate) ClearAlias() *UserUpdate {
-	uu.mutation.ClearAlias()
-	return uu
-}
-
-// AddAdministeredIDs adds the "administered" edge to the Category entity by IDs.
-func (uu *UserUpdate) AddAdministeredIDs(ids ...int) *UserUpdate {
-	uu.mutation.AddAdministeredIDs(ids...)
-	return uu
-}
-
-// AddAdministered adds the "administered" edges to the Category entity.
-func (uu *UserUpdate) AddAdministered(c ...*Category) *UserUpdate {
-	ids := make([]int, len(c))
-	for i := range c {
-		ids[i] = c[i].ID
-	}
-	return uu.AddAdministeredIDs(ids...)
+	return uu.AddAdminOfIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -80,25 +72,25 @@ func (uu *UserUpdate) Mutation() *UserMutation {
 	return uu.mutation
 }
 
-// ClearAdministered clears all "administered" edges to the Category entity.
-func (uu *UserUpdate) ClearAdministered() *UserUpdate {
-	uu.mutation.ClearAdministered()
+// ClearAdminOf clears all "admin_of" edges to the Group entity.
+func (uu *UserUpdate) ClearAdminOf() *UserUpdate {
+	uu.mutation.ClearAdminOf()
 	return uu
 }
 
-// RemoveAdministeredIDs removes the "administered" edge to Category entities by IDs.
-func (uu *UserUpdate) RemoveAdministeredIDs(ids ...int) *UserUpdate {
-	uu.mutation.RemoveAdministeredIDs(ids...)
+// RemoveAdminOfIDs removes the "admin_of" edge to Group entities by IDs.
+func (uu *UserUpdate) RemoveAdminOfIDs(ids ...int) *UserUpdate {
+	uu.mutation.RemoveAdminOfIDs(ids...)
 	return uu
 }
 
-// RemoveAdministered removes "administered" edges to Category entities.
-func (uu *UserUpdate) RemoveAdministered(c ...*Category) *UserUpdate {
-	ids := make([]int, len(c))
-	for i := range c {
-		ids[i] = c[i].ID
+// RemoveAdminOf removes "admin_of" edges to Group entities.
+func (uu *UserUpdate) RemoveAdminOf(g ...*Group) *UserUpdate {
+	ids := make([]int, len(g))
+	for i := range g {
+		ids[i] = g[i].ID
 	}
-	return uu.RemoveAdministeredIDs(ids...)
+	return uu.RemoveAdminOfIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -108,12 +100,18 @@ func (uu *UserUpdate) Save(ctx context.Context) (int, error) {
 		affected int
 	)
 	if len(uu.hooks) == 0 {
+		if err = uu.check(); err != nil {
+			return 0, err
+		}
 		affected, err = uu.sqlSave(ctx)
 	} else {
 		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 			mutation, ok := m.(*UserMutation)
 			if !ok {
 				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			if err = uu.check(); err != nil {
+				return 0, err
 			}
 			uu.mutation = mutation
 			affected, err = uu.sqlSave(ctx)
@@ -155,6 +153,31 @@ func (uu *UserUpdate) ExecX(ctx context.Context) {
 	}
 }
 
+// check runs all checks and user-defined validators on the builder.
+func (uu *UserUpdate) check() error {
+	if v, ok := uu.mutation.Username(); ok {
+		if err := user.UsernameValidator(v); err != nil {
+			return &ValidationError{Name: "username", err: fmt.Errorf(`ent: validator failed for field "User.username": %w`, err)}
+		}
+	}
+	if v, ok := uu.mutation.FirstName(); ok {
+		if err := user.FirstNameValidator(v); err != nil {
+			return &ValidationError{Name: "first_name", err: fmt.Errorf(`ent: validator failed for field "User.first_name": %w`, err)}
+		}
+	}
+	if v, ok := uu.mutation.LastName(); ok {
+		if err := user.LastNameValidator(v); err != nil {
+			return &ValidationError{Name: "last_name", err: fmt.Errorf(`ent: validator failed for field "User.last_name": %w`, err)}
+		}
+	}
+	if v, ok := uu.mutation.Email(); ok {
+		if err := user.EmailValidator(v); err != nil {
+			return &ValidationError{Name: "email", err: fmt.Errorf(`ent: validator failed for field "User.email": %w`, err)}
+		}
+	}
+	return nil
+}
+
 func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
@@ -173,45 +196,45 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
-	if value, ok := uu.mutation.Name(); ok {
-		_spec.SetField(user.FieldName, field.TypeString, value)
+	if value, ok := uu.mutation.Username(); ok {
+		_spec.SetField(user.FieldUsername, field.TypeString, value)
 	}
-	if value, ok := uu.mutation.EmailAddress(); ok {
-		_spec.SetField(user.FieldEmailAddress, field.TypeString, value)
+	if value, ok := uu.mutation.FirstName(); ok {
+		_spec.SetField(user.FieldFirstName, field.TypeString, value)
 	}
-	if value, ok := uu.mutation.Alias(); ok {
-		_spec.SetField(user.FieldAlias, field.TypeString, value)
+	if value, ok := uu.mutation.LastName(); ok {
+		_spec.SetField(user.FieldLastName, field.TypeString, value)
 	}
-	if uu.mutation.AliasCleared() {
-		_spec.ClearField(user.FieldAlias, field.TypeString)
+	if value, ok := uu.mutation.Email(); ok {
+		_spec.SetField(user.FieldEmail, field.TypeString, value)
 	}
-	if uu.mutation.AdministeredCleared() {
+	if uu.mutation.AdminOfCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
-			Inverse: true,
-			Table:   user.AdministeredTable,
-			Columns: []string{user.AdministeredColumn},
+			Inverse: false,
+			Table:   user.AdminOfTable,
+			Columns: []string{user.AdminOfColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
-					Column: category.FieldID,
+					Column: group.FieldID,
 				},
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := uu.mutation.RemovedAdministeredIDs(); len(nodes) > 0 && !uu.mutation.AdministeredCleared() {
+	if nodes := uu.mutation.RemovedAdminOfIDs(); len(nodes) > 0 && !uu.mutation.AdminOfCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
-			Inverse: true,
-			Table:   user.AdministeredTable,
-			Columns: []string{user.AdministeredColumn},
+			Inverse: false,
+			Table:   user.AdminOfTable,
+			Columns: []string{user.AdminOfColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
-					Column: category.FieldID,
+					Column: group.FieldID,
 				},
 			},
 		}
@@ -220,17 +243,17 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := uu.mutation.AdministeredIDs(); len(nodes) > 0 {
+	if nodes := uu.mutation.AdminOfIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
-			Inverse: true,
-			Table:   user.AdministeredTable,
-			Columns: []string{user.AdministeredColumn},
+			Inverse: false,
+			Table:   user.AdminOfTable,
+			Columns: []string{user.AdminOfColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
-					Column: category.FieldID,
+					Column: group.FieldID,
 				},
 			},
 		}
@@ -258,51 +281,43 @@ type UserUpdateOne struct {
 	mutation *UserMutation
 }
 
-// SetName sets the "name" field.
-func (uuo *UserUpdateOne) SetName(s string) *UserUpdateOne {
-	uuo.mutation.SetName(s)
+// SetUsername sets the "username" field.
+func (uuo *UserUpdateOne) SetUsername(s string) *UserUpdateOne {
+	uuo.mutation.SetUsername(s)
 	return uuo
 }
 
-// SetEmailAddress sets the "email_address" field.
-func (uuo *UserUpdateOne) SetEmailAddress(s string) *UserUpdateOne {
-	uuo.mutation.SetEmailAddress(s)
+// SetFirstName sets the "first_name" field.
+func (uuo *UserUpdateOne) SetFirstName(s string) *UserUpdateOne {
+	uuo.mutation.SetFirstName(s)
 	return uuo
 }
 
-// SetAlias sets the "alias" field.
-func (uuo *UserUpdateOne) SetAlias(s string) *UserUpdateOne {
-	uuo.mutation.SetAlias(s)
+// SetLastName sets the "last_name" field.
+func (uuo *UserUpdateOne) SetLastName(s string) *UserUpdateOne {
+	uuo.mutation.SetLastName(s)
 	return uuo
 }
 
-// SetNillableAlias sets the "alias" field if the given value is not nil.
-func (uuo *UserUpdateOne) SetNillableAlias(s *string) *UserUpdateOne {
-	if s != nil {
-		uuo.SetAlias(*s)
+// SetEmail sets the "email" field.
+func (uuo *UserUpdateOne) SetEmail(s string) *UserUpdateOne {
+	uuo.mutation.SetEmail(s)
+	return uuo
+}
+
+// AddAdminOfIDs adds the "admin_of" edge to the Group entity by IDs.
+func (uuo *UserUpdateOne) AddAdminOfIDs(ids ...int) *UserUpdateOne {
+	uuo.mutation.AddAdminOfIDs(ids...)
+	return uuo
+}
+
+// AddAdminOf adds the "admin_of" edges to the Group entity.
+func (uuo *UserUpdateOne) AddAdminOf(g ...*Group) *UserUpdateOne {
+	ids := make([]int, len(g))
+	for i := range g {
+		ids[i] = g[i].ID
 	}
-	return uuo
-}
-
-// ClearAlias clears the value of the "alias" field.
-func (uuo *UserUpdateOne) ClearAlias() *UserUpdateOne {
-	uuo.mutation.ClearAlias()
-	return uuo
-}
-
-// AddAdministeredIDs adds the "administered" edge to the Category entity by IDs.
-func (uuo *UserUpdateOne) AddAdministeredIDs(ids ...int) *UserUpdateOne {
-	uuo.mutation.AddAdministeredIDs(ids...)
-	return uuo
-}
-
-// AddAdministered adds the "administered" edges to the Category entity.
-func (uuo *UserUpdateOne) AddAdministered(c ...*Category) *UserUpdateOne {
-	ids := make([]int, len(c))
-	for i := range c {
-		ids[i] = c[i].ID
-	}
-	return uuo.AddAdministeredIDs(ids...)
+	return uuo.AddAdminOfIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -310,25 +325,25 @@ func (uuo *UserUpdateOne) Mutation() *UserMutation {
 	return uuo.mutation
 }
 
-// ClearAdministered clears all "administered" edges to the Category entity.
-func (uuo *UserUpdateOne) ClearAdministered() *UserUpdateOne {
-	uuo.mutation.ClearAdministered()
+// ClearAdminOf clears all "admin_of" edges to the Group entity.
+func (uuo *UserUpdateOne) ClearAdminOf() *UserUpdateOne {
+	uuo.mutation.ClearAdminOf()
 	return uuo
 }
 
-// RemoveAdministeredIDs removes the "administered" edge to Category entities by IDs.
-func (uuo *UserUpdateOne) RemoveAdministeredIDs(ids ...int) *UserUpdateOne {
-	uuo.mutation.RemoveAdministeredIDs(ids...)
+// RemoveAdminOfIDs removes the "admin_of" edge to Group entities by IDs.
+func (uuo *UserUpdateOne) RemoveAdminOfIDs(ids ...int) *UserUpdateOne {
+	uuo.mutation.RemoveAdminOfIDs(ids...)
 	return uuo
 }
 
-// RemoveAdministered removes "administered" edges to Category entities.
-func (uuo *UserUpdateOne) RemoveAdministered(c ...*Category) *UserUpdateOne {
-	ids := make([]int, len(c))
-	for i := range c {
-		ids[i] = c[i].ID
+// RemoveAdminOf removes "admin_of" edges to Group entities.
+func (uuo *UserUpdateOne) RemoveAdminOf(g ...*Group) *UserUpdateOne {
+	ids := make([]int, len(g))
+	for i := range g {
+		ids[i] = g[i].ID
 	}
-	return uuo.RemoveAdministeredIDs(ids...)
+	return uuo.RemoveAdminOfIDs(ids...)
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -345,12 +360,18 @@ func (uuo *UserUpdateOne) Save(ctx context.Context) (*User, error) {
 		node *User
 	)
 	if len(uuo.hooks) == 0 {
+		if err = uuo.check(); err != nil {
+			return nil, err
+		}
 		node, err = uuo.sqlSave(ctx)
 	} else {
 		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 			mutation, ok := m.(*UserMutation)
 			if !ok {
 				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			if err = uuo.check(); err != nil {
+				return nil, err
 			}
 			uuo.mutation = mutation
 			node, err = uuo.sqlSave(ctx)
@@ -398,6 +419,31 @@ func (uuo *UserUpdateOne) ExecX(ctx context.Context) {
 	}
 }
 
+// check runs all checks and user-defined validators on the builder.
+func (uuo *UserUpdateOne) check() error {
+	if v, ok := uuo.mutation.Username(); ok {
+		if err := user.UsernameValidator(v); err != nil {
+			return &ValidationError{Name: "username", err: fmt.Errorf(`ent: validator failed for field "User.username": %w`, err)}
+		}
+	}
+	if v, ok := uuo.mutation.FirstName(); ok {
+		if err := user.FirstNameValidator(v); err != nil {
+			return &ValidationError{Name: "first_name", err: fmt.Errorf(`ent: validator failed for field "User.first_name": %w`, err)}
+		}
+	}
+	if v, ok := uuo.mutation.LastName(); ok {
+		if err := user.LastNameValidator(v); err != nil {
+			return &ValidationError{Name: "last_name", err: fmt.Errorf(`ent: validator failed for field "User.last_name": %w`, err)}
+		}
+	}
+	if v, ok := uuo.mutation.Email(); ok {
+		if err := user.EmailValidator(v); err != nil {
+			return &ValidationError{Name: "email", err: fmt.Errorf(`ent: validator failed for field "User.email": %w`, err)}
+		}
+	}
+	return nil
+}
+
 func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
@@ -433,45 +479,45 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 			}
 		}
 	}
-	if value, ok := uuo.mutation.Name(); ok {
-		_spec.SetField(user.FieldName, field.TypeString, value)
+	if value, ok := uuo.mutation.Username(); ok {
+		_spec.SetField(user.FieldUsername, field.TypeString, value)
 	}
-	if value, ok := uuo.mutation.EmailAddress(); ok {
-		_spec.SetField(user.FieldEmailAddress, field.TypeString, value)
+	if value, ok := uuo.mutation.FirstName(); ok {
+		_spec.SetField(user.FieldFirstName, field.TypeString, value)
 	}
-	if value, ok := uuo.mutation.Alias(); ok {
-		_spec.SetField(user.FieldAlias, field.TypeString, value)
+	if value, ok := uuo.mutation.LastName(); ok {
+		_spec.SetField(user.FieldLastName, field.TypeString, value)
 	}
-	if uuo.mutation.AliasCleared() {
-		_spec.ClearField(user.FieldAlias, field.TypeString)
+	if value, ok := uuo.mutation.Email(); ok {
+		_spec.SetField(user.FieldEmail, field.TypeString, value)
 	}
-	if uuo.mutation.AdministeredCleared() {
+	if uuo.mutation.AdminOfCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
-			Inverse: true,
-			Table:   user.AdministeredTable,
-			Columns: []string{user.AdministeredColumn},
+			Inverse: false,
+			Table:   user.AdminOfTable,
+			Columns: []string{user.AdminOfColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
-					Column: category.FieldID,
+					Column: group.FieldID,
 				},
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := uuo.mutation.RemovedAdministeredIDs(); len(nodes) > 0 && !uuo.mutation.AdministeredCleared() {
+	if nodes := uuo.mutation.RemovedAdminOfIDs(); len(nodes) > 0 && !uuo.mutation.AdminOfCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
-			Inverse: true,
-			Table:   user.AdministeredTable,
-			Columns: []string{user.AdministeredColumn},
+			Inverse: false,
+			Table:   user.AdminOfTable,
+			Columns: []string{user.AdminOfColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
-					Column: category.FieldID,
+					Column: group.FieldID,
 				},
 			},
 		}
@@ -480,17 +526,17 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := uuo.mutation.AdministeredIDs(); len(nodes) > 0 {
+	if nodes := uuo.mutation.AdminOfIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
-			Inverse: true,
-			Table:   user.AdministeredTable,
-			Columns: []string{user.AdministeredColumn},
+			Inverse: false,
+			Table:   user.AdminOfTable,
+			Columns: []string{user.AdminOfColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
-					Column: category.FieldID,
+					Column: group.FieldID,
 				},
 			},
 		}

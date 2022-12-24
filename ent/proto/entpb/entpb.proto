@@ -5,8 +5,6 @@ package entpb;
 
 import "google/protobuf/empty.proto";
 
-import "google/protobuf/wrappers.proto";
-
 option go_package = "github.com/rotemtam/ent-grpc-example/ent/proto/entpb";
 
 message Category {
@@ -17,11 +15,19 @@ message Category {
   User admin = 3;
 }
 
-message CreateCategoryRequest {
-  Category category = 1;
+message Group {
+  int64 id = 1;
+
+  string name = 2;
+
+  User admin = 3;
 }
 
-message GetCategoryRequest {
+message CreateGroupRequest {
+  Group group = 1;
+}
+
+message GetGroupRequest {
   int64 id = 1;
 
   View view = 2;
@@ -35,15 +41,15 @@ message GetCategoryRequest {
   }
 }
 
-message UpdateCategoryRequest {
-  Category category = 1;
+message UpdateGroupRequest {
+  Group group = 1;
 }
 
-message DeleteCategoryRequest {
+message DeleteGroupRequest {
   int64 id = 1;
 }
 
-message ListCategoryRequest {
+message ListGroupRequest {
   int32 page_size = 1;
 
   string page_token = 2;
@@ -59,30 +65,32 @@ message ListCategoryRequest {
   }
 }
 
-message ListCategoryResponse {
-  repeated Category category_list = 1;
+message ListGroupResponse {
+  repeated Group group_list = 1;
 
   string next_page_token = 2;
 }
 
-message BatchCreateCategoriesRequest {
-  repeated CreateCategoryRequest requests = 1;
+message BatchCreateGroupsRequest {
+  repeated CreateGroupRequest requests = 1;
 }
 
-message BatchCreateCategoriesResponse {
-  repeated Category categories = 1;
+message BatchCreateGroupsResponse {
+  repeated Group groups = 1;
 }
 
 message User {
   int64 id = 1;
 
-  string name = 2;
+  string username = 2;
 
-  string email_address = 3;
+  string first_name = 3;
 
-  google.protobuf.StringValue alias = 4;
+  string last_name = 4;
 
-  repeated Category administered = 5;
+  string email = 5;
+
+  repeated Group admin_of = 6;
 }
 
 message CreateUserRequest {
@@ -141,18 +149,18 @@ message BatchCreateUsersResponse {
   repeated User users = 1;
 }
 
-service CategoryService {
-  rpc Create ( CreateCategoryRequest ) returns ( Category );
+service GroupService {
+  rpc Create ( CreateGroupRequest ) returns ( Group );
 
-  rpc Get ( GetCategoryRequest ) returns ( Category );
+  rpc Get ( GetGroupRequest ) returns ( Group );
 
-  rpc Update ( UpdateCategoryRequest ) returns ( Category );
+  rpc Update ( UpdateGroupRequest ) returns ( Group );
 
-  rpc Delete ( DeleteCategoryRequest ) returns ( google.protobuf.Empty );
+  rpc Delete ( DeleteGroupRequest ) returns ( google.protobuf.Empty );
 
-  rpc List ( ListCategoryRequest ) returns ( ListCategoryResponse );
+  rpc List ( ListGroupRequest ) returns ( ListGroupResponse );
 
-  rpc BatchCreate ( BatchCreateCategoriesRequest ) returns ( BatchCreateCategoriesResponse );
+  rpc BatchCreate ( BatchCreateGroupsRequest ) returns ( BatchCreateGroupsResponse );
 }
 
 service UserService {

@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/rotemtam/ent-grpc-example/ent/category"
+	"github.com/rotemtam/ent-grpc-example/ent/group"
 	"github.com/rotemtam/ent-grpc-example/ent/user"
 )
 
@@ -33,6 +34,7 @@ type OrderFunc func(*sql.Selector)
 func columnChecker(table string) func(string) error {
 	checks := map[string]func(string) bool{
 		category.Table: category.ValidColumn,
+		group.Table:    group.ValidColumn,
 		user.Table:     user.ValidColumn,
 	}
 	check, ok := checks[table]

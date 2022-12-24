@@ -28,12 +28,33 @@ var (
 			},
 		},
 	}
+	// GroupsColumns holds the columns for the "groups" table.
+	GroupsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "name", Type: field.TypeString},
+		{Name: "user_admin_of", Type: field.TypeInt, Nullable: true},
+	}
+	// GroupsTable holds the schema information for the "groups" table.
+	GroupsTable = &schema.Table{
+		Name:       "groups",
+		Columns:    GroupsColumns,
+		PrimaryKey: []*schema.Column{GroupsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "groups_users_admin_of",
+				Columns:    []*schema.Column{GroupsColumns[2]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+	}
 	// UsersColumns holds the columns for the "users" table.
 	UsersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "name", Type: field.TypeString, Unique: true},
-		{Name: "email_address", Type: field.TypeString, Unique: true},
-		{Name: "alias", Type: field.TypeString, Nullable: true},
+		{Name: "username", Type: field.TypeString, Unique: true},
+		{Name: "first_name", Type: field.TypeString, Size: 2147483647},
+		{Name: "last_name", Type: field.TypeString, Size: 2147483647},
+		{Name: "email", Type: field.TypeString, Unique: true},
 	}
 	// UsersTable holds the schema information for the "users" table.
 	UsersTable = &schema.Table{
@@ -44,10 +65,12 @@ var (
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		CategoriesTable,
+		GroupsTable,
 		UsersTable,
 	}
 )
 
 func init() {
 	CategoriesTable.ForeignKeys[0].RefTable = UsersTable
+	GroupsTable.ForeignKeys[0].RefTable = UsersTable
 }
