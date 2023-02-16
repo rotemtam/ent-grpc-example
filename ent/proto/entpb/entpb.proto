@@ -10,7 +10,7 @@ import "google/protobuf/wrappers.proto";
 option go_package = "github.com/rotemtam/ent-grpc-example/ent/proto/entpb";
 
 message Category {
-  int32 id = 1;
+  int64 id = 1;
 
   string name = 2;
 
@@ -18,7 +18,7 @@ message Category {
 }
 
 message User {
-  int32 id = 1;
+  int64 id = 1;
 
   string name = 2;
 
@@ -34,7 +34,7 @@ message CreateUserRequest {
 }
 
 message GetUserRequest {
-  int32 id = 1;
+  int64 id = 1;
 
   View view = 2;
 
@@ -52,7 +52,37 @@ message UpdateUserRequest {
 }
 
 message DeleteUserRequest {
-  int32 id = 1;
+  int64 id = 1;
+}
+
+message ListUserRequest {
+  int32 page_size = 1;
+
+  string page_token = 2;
+
+  View view = 3;
+
+  enum View {
+    VIEW_UNSPECIFIED = 0;
+
+    BASIC = 1;
+
+    WITH_EDGE_IDS = 2;
+  }
+}
+
+message ListUserResponse {
+  repeated User user_list = 1;
+
+  string next_page_token = 2;
+}
+
+message BatchCreateUsersRequest {
+  repeated CreateUserRequest requests = 1;
+}
+
+message BatchCreateUsersResponse {
+  repeated User users = 1;
 }
 
 service UserService {
@@ -63,4 +93,8 @@ service UserService {
   rpc Update ( UpdateUserRequest ) returns ( User );
 
   rpc Delete ( DeleteUserRequest ) returns ( google.protobuf.Empty );
+
+  rpc List ( ListUserRequest ) returns ( ListUserResponse );
+
+  rpc BatchCreate ( BatchCreateUsersRequest ) returns ( BatchCreateUsersResponse );
 }

@@ -19,21 +19,21 @@ func TestServiceWithEdges(t *testing.T) {
 	defer client.Close()
 
 	// next, initialize the UserService. Notice we won't be opening an actual port and creating a gRPC server
-	// and instead we are just calling the library code directly. 
+	// and instead we are just calling the library code directly.
 	svc := entpb.NewUserService(client)
 
 	// next, we create a category directly using the ent client. notice we are initializing it with no relation
 	// to a User.
 	cat := client.Category.Create().SetName("cat_1").SaveX(ctx)
 
-	// next, we invoke the User service's `Create` method. Notice we are passing a list of entpb.Category 
-	// instances with only the ID set. 
+	// next, we invoke the User service's `Create` method. Notice we are passing a list of entpb.Category
+	// instances with only the ID set.
 	create, err := svc.Create(ctx, &entpb.CreateUserRequest{
 		User: &entpb.User{
 			Name:         "user",
 			EmailAddress: "user@service.code",
 			Administered: []*entpb.Category{
-				{Id: int32(cat.ID)},
+				{Id: int64(cat.ID)},
 			},
 		},
 	})
@@ -82,7 +82,7 @@ func TestGet(t *testing.T) {
 
 	// next, retrieve the user without edge information
 	get, err := svc.Get(ctx, &entpb.GetUserRequest{
-		Id: int32(user.ID),
+		Id: int64(user.ID),
 	})
 	if err != nil {
 		t.Fatal("failed retrieving the created user", err)
@@ -93,7 +93,7 @@ func TestGet(t *testing.T) {
 
 	// next, retrieve the user *WITH* edge information
 	get, err = svc.Get(ctx, &entpb.GetUserRequest{
-		Id:   int32(user.ID),
+		Id:   int64(user.ID),
 		View: entpb.GetUserRequest_WITH_EDGE_IDS,
 	})
 	if err != nil {
