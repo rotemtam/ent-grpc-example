@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package entpb;
+
+option go_package = "github.com/rotemtam/ent-grpc-example/ent/proto/entpb";
+
+import "entpb/entpb.proto";
+
+import "google/protobuf/empty.proto";
+
+
+service ExtService {
+  rpc TopUser ( google.protobuf.Empty ) returns ( User );
+}
