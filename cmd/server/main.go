@@ -33,6 +33,9 @@ func main() {
 	// Register the User service with the server.
 	entpb.RegisterUserServiceServer(server, svc)
 
+	// Register the external ExtService service with the server.
+	entpb.RegisterExtServiceServer(server, entpb.NewExtService(client))
+
 	// Open port 5000 for listening to traffic.
 	lis, err := net.Listen("tcp", ":5000")
 	if err != nil {
